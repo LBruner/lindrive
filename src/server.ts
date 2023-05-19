@@ -1,3 +1,4 @@
+import "dotenv/config";
 import * as http from "http";
 import app from "./app.js";
 

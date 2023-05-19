@@ -1,7 +1,6 @@
 {
   "name": "lindrive",
   "version": "0.0.1",
-  "type": "module",
   "description": "Welcome to the Google Drive on Linux experience.",
   "main": "server.js",
   "scripts": {
@@ -19,8 +18,10 @@
   "homepage": "https://github.com/LBruner/lindrive#readme",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "mysql2": "^3.3.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",
