@@ -1,4 +1,5 @@
 import mysql from 'mysql2';
+
 const util = require('util');
 
 const connection = mysql.createConnection({
@@ -8,5 +9,15 @@ const connection = mysql.createConnection({
     database: process.env.MYSQL_DATABASE
 });
 
-const query: any = util.promisify(connection.query).bind(connection);
+connection.connect((err) => {
+    if (err) {
+        console.error('Error connecting to MySQL:', err);
+        throw err;
+    }
+
+    console.log('Connected to MySQL successfully!');
+});
+
+const query = util.promisify(connection.query).bind(connection);
+
 export default query;
