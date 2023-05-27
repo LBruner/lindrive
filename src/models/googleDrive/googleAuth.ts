@@ -2,7 +2,6 @@ import process from "process";
 
 const {google} = require("googleapis");
 
-console.log(process.env.CLIENT_ID)
 const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,

@@ -18,7 +18,6 @@ function getFoldersAndFiles(directoryPath: string): Folder[] {
         const rootFolder: Folder = {
             name: path.basename(directoryPath),
             path: path.dirname(directoryPath),
-            parent_folder: null,
             filesLocation: files,
             filesDetails: []
         };
@@ -41,7 +40,6 @@ function getFoldersAndFiles(directoryPath: string): Folder[] {
             name: folderName,
             path: folderPath,
             filesLocation: subFolderFiles,
-            parent_folder: path.basename(directoryPath),
             filesDetails: []
         };
 
@@ -57,7 +55,7 @@ function getFoldersAndFiles(directoryPath: string): Folder[] {
                 path: file,
                 size: stats.size,
                 extension: path.extname(file),
-                modified: stats.mtime,
+                modified: new Date(stats.mtimeMs).toISOString(),
             })
         }
     }
