@@ -4,14 +4,15 @@ export interface File {
     extension: string;
     path: string;
     modified?: string;
-    parent_folder?: string,
-    cloud_id?: string
+    parentFolder?: string,
+    cloudID?: string
 }
 
-export interface Folder{
+export interface Folder {
     name: string;
     path: string;
-    cloud_id?: string,
-    filesLocation?: Array<string>
-    filesDetails?: Array<File>
+    parentFolderName: string
+    folders: Folder[];
+    cloudID?: string,
+    parentFolderID?: string
 }

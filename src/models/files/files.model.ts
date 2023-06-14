@@ -1,68 +1,123 @@
 import * as path from "path";
-import {Folder} from '../types';
+import {File, Folder} from '../types';
 import * as fs from "fs";
-import {updateDB} from "./files.mysql";
+import {getFolderID} from "./files.mysql";
+import query from "../../services/mysql";
+import {createDriveFolder, uploadFile} from "../googleDrive/googleDriveAPI";
 
-const folderDir = '/home/lbruner/Documents/Cursos';
+function getFolders(folderPath: string): Folder {
+    const folderName = path.basename(folderPath);
+    const folderContents = fs.readdirSync(folderPath);
 
-function getFoldersAndFiles(directoryPath: string): Folder[] {
     const folders: Folder[] = [];
 
-    const dirents = fs.readdirSync(directoryPath, {withFileTypes: true});
+    for (const item of folderContents) {
+        const itemPath = path.join(folderPath, item);
+        const stats = fs.statSync(itemPath);
 
-    const files = dirents
-        .filter((dirent) => dirent.isFile())
-        .map((dirent) => path.join(directoryPath, dirent.name));
-
-    if (files.length > 0) {
-        const rootFolder: Folder = {
-            name: path.basename(directoryPath),
-            path: path.dirname(directoryPath),
-            filesLocation: files,
-            filesDetails: []
-        };
-
-        folders.push(rootFolder);
+        if (stats.isDirectory()) {
+            const subFolder = getFolders(itemPath);
+            folders.push(subFolder);
+        }
     }
 
-    const subFolders = dirents
-        .filter((dirent) => dirent.isDirectory())
-        .map((dirent) => dirent.name);
+    return {
+        name: folderName,
+        path: folderPath,
+        parentFolderName: path.basename(path.dirname(folderPath)),
+        folders: folders,
+    };
+}
 
-    for (const folderName of subFolders) {
-        const folderPath = path.join(directoryPath, folderName);
+//TODO Refactor
+function getFiles(filePath: string): File[] {
+    path.basename(filePath);
+    const folderContents = fs.readdirSync(filePath);
 
-        const subFolderFiles = fs.readdirSync(folderPath, {withFileTypes: true})
-            .filter((dirent) => dirent.isFile())
-            .map((dirent) => path.join(folderPath, dirent.name));
+    const files: File[] = [];
 
-        const folder: Folder = {
-            name: folderName,
-            path: folderPath,
-            filesLocation: subFolderFiles,
-            filesDetails: []
-        };
+    for (const item of folderContents) {
+        const itemPath = path.join(filePath, item);
+        const stats = fs.statSync(itemPath);
 
-        folders.push(folder);
-    }
-
-    for (let folder of folders) {
-        for (let file of folder.filesLocation!) {
-            const stats = fs.statSync(file);
-
-            folder.filesDetails?.push({
-                name: path.basename(file),
-                path: file,
+        if (!stats.isDirectory()) {
+            files.push({
+                name: item,
                 size: stats.size,
-                extension: path.extname(file),
-                modified: new Date(stats.mtimeMs).toISOString(),
+                path: itemPath,
+                extension: path.extname(item),
+                modified: new Date(stats.mtime).toISOString().slice(0, 19)
             })
         }
     }
-    return folders;
+
+    return files;
 }
 
-export const startFilesSync = async () => {
-    const foldersAndFiles = getFoldersAndFiles(folderDir);
-    await updateDB(foldersAndFiles);
+const registerFolder = async (folder: Folder, parentFolderID: string) => {
+    const cloudID = await createDriveFolder(folder, parentFolderID)
+    console.log(`FILE: ${folder.name} was uploaded to parent: ${parentFolderID} and Has ID: ${cloudID}`)
+    await query(`INSERT INTO folders (name, path, cloudID)
+                 VALUES ("${folder.name}", "${folder.path}", "${cloudID}")`);
+    console.log(`Registered the folder: ${folder.name}`);
+    return parentFolderID;
+};
+
+const registerFile = async (file: File, parentFolderID: string) => {
+    const {name, extension, path, size, modified} = file;
+    const cloudID = await uploadFile(file, parentFolderID)
+    console.log(`FILE: ${file.name} was uploaded to parent: ${parentFolderID} and Has ID: ${cloudID}`)
+    await query(`INSERT INTO files (name, extension, path, cloud_id, last_modified_local, last_modified_cloud,
+                                    size) VALUE ("${name}", "${extension}", "${path}", "${cloudID}", "${modified}",
+                                                 "${modified}", "${size}")`)
+    return parentFolderID;
+};
+
+export const startFilesSync = async (directoryFolder: string, rootFolderCloudID: string) => {
+
+
+    const folders = await getFolders(directoryFolder);
+
+    const processFolders = async (rootFolder: Folder) => {
+        let rootFolderID = await getFolderID(folders.path);
+
+        if (!rootFolderID) {
+            rootFolderID = await registerFolder(folders, rootFolderCloudID);
+        }
+
+        for (let subFolder of rootFolder.folders) {
+            const folderIsRegistered = await getFolderID(subFolder.path);
+
+            if (!folderIsRegistered) {
+                const parentID = await query(`SELECT cloudID
+                                              FROM folders
+                                              WHERE name = "${subFolder.parentFolderName}"`)
+                console.log(subFolder.name)
+                console.log(parentID)
+                const subFolderID = await registerFolder(subFolder, parentID[0].cloudID);
+                await processFolders(subFolder);
+                console.log(`folder ${subFolder.name} has parent id: "${subFolderID}"`)
+            } else {
+                await processFolders(subFolder);
+            }
+        }
+    };
+
+    const processFiles = async () => {
+        const folders = await query(`SELECT path
+                                     from folders`);
+        for (let folder of folders) {
+            const parentFolderID = await getFolderID(folder.path);
+            const files = getFiles(folder.path);
+            for (const file of files) {
+                const fileIsRegistered = await query(`SELECT name
+                                                      FROM files
+                                                      WHERE name = "${file.name}"`);
+                if (fileIsRegistered.length === 0)
+                    await registerFile(file, parentFolderID)
+            }
+        }
+    }
+    await processFolders(folders)
+    await processFiles()
 };
