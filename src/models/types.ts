@@ -12,7 +12,11 @@ export interface Folder {
     name: string;
     path: string;
     parentFolderName: string
-    folders: Folder[];
     cloudID?: string,
     parentFolderID?: string
+}
+
+export interface Result {
+    files: File[];
+    folders: Folder[];
 }

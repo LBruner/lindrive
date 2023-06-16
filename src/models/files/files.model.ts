@@ -1,123 +1,102 @@
 import * as path from "path";
-import {File, Folder} from '../types';
 import * as fs from "fs";
-import {getFolderID} from "./files.mysql";
+import {getFolderID, registerItem} from "./files.mysql";
 import query from "../../services/mysql";
-import {createDriveFolder, uploadFile} from "../googleDrive/googleDriveAPI";
+import {File, Folder, Result} from "../types";
+import {itemsLogger} from "../../app";
 
-function getFolders(folderPath: string): Folder {
-    const folderName = path.basename(folderPath);
-    const folderContents = fs.readdirSync(folderPath);
-
+function traverseDirectory(directory: string): Result {
+    const files: File[] = [];
     const folders: Folder[] = [];
 
-    for (const item of folderContents) {
-        const itemPath = path.join(folderPath, item);
-        const stats = fs.statSync(itemPath);
+    function traverse(dir: string) {
+        const entries = fs.readdirSync(dir, {withFileTypes: true});
 
-        if (stats.isDirectory()) {
-            const subFolder = getFolders(itemPath);
-            folders.push(subFolder);
-        }
+        entries.forEach((entry) => {
+            const fullPath = path.join(dir, entry.name);
+            const relativePath = path.relative(directory, fullPath);
+            const stat = fs.statSync(fullPath);
+
+            if (entry.isDirectory()) {
+                const folder: Folder = {
+                    name: path.basename(fullPath),
+                    path: fullPath,
+                    parentFolderName: path.basename(path.dirname(fullPath)),
+                };
+
+                folders.push(folder);
+
+                traverse(fullPath);
+            } else {
+                const file: File = {
+                    name: entry.name,
+                    size: stat.size,
+                    extension: path.extname(entry.name),
+                    path: fullPath,
+                    modified: new Date(stat.mtime).toISOString().slice(0, 19),
+                    parentFolder: path.basename(path.dirname(fullPath)),
+                };
+
+                files.push(file);
+            }
+        });
     }
 
-    return {
-        name: folderName,
-        path: folderPath,
-        parentFolderName: path.basename(path.dirname(folderPath)),
-        folders: folders,
+    const rootFolder: Folder = {
+        name: path.basename(directory),
+        path: directory,
+        parentFolderName: path.basename(path.dirname(directory)),
     };
+
+    folders.push(rootFolder);
+    traverse(directory);
+
+    return {files, folders};
 }
 
-//TODO Refactor
-function getFiles(filePath: string): File[] {
-    path.basename(filePath);
-    const folderContents = fs.readdirSync(filePath);
+const processFolders = async (folders: Folder[], rootFolderCloudID: string) => {
+    let rootFolderID = await getFolderID(folders[0].path);
 
-    const files: File[] = [];
-
-    for (const item of folderContents) {
-        const itemPath = path.join(filePath, item);
-        const stats = fs.statSync(itemPath);
-
-        if (!stats.isDirectory()) {
-            files.push({
-                name: item,
-                size: stats.size,
-                path: itemPath,
-                extension: path.extname(item),
-                modified: new Date(stats.mtime).toISOString().slice(0, 19)
-            })
-        }
+    if (!rootFolderID) {
+        rootFolderID = await registerItem(folders[0], rootFolderCloudID);
     }
 
-    return files;
+    for (let subFolder of folders) {
+        const folderIsRegistered = await getFolderID(subFolder.path);
+
+        if (!folderIsRegistered) {
+            const parentID = await query(`SELECT cloudID
+                                          FROM folders
+                                          WHERE name = "${subFolder.parentFolderName}"`)
+            itemsLogger.info(`Folder: ${subFolder.name} was registered under the parentID: ${parentID}`)
+            const subFolderID = await registerItem(subFolder, parentID[0].cloudID);
+        } else {
+        }
+    }
+};
+
+const processFiles = async (files: File[]) => {
+    for (let file of files) {
+        const parentFolderID = await query(`SELECT cloudID
+                                            from folders
+                                            WHERE name = "${file.parentFolder}"`);
+        const fileIsRegistered = await query(`SELECT name
+                                              FROM files
+                                              WHERE name = "${file.name}"`);
+        if (fileIsRegistered.length === 0 && parentFolderID[0]) {
+            await registerItem(file, parentFolderID[0].cloudID)
+            itemsLogger.info(`Folder: ${file.name} was registered under the parentID: ${parentFolderID}`)
+        }
+    }
 }
-
-const registerFolder = async (folder: Folder, parentFolderID: string) => {
-    const cloudID = await createDriveFolder(folder, parentFolderID)
-    console.log(`FILE: ${folder.name} was uploaded to parent: ${parentFolderID} and Has ID: ${cloudID}`)
-    await query(`INSERT INTO folders (name, path, cloudID)
-                 VALUES ("${folder.name}", "${folder.path}", "${cloudID}")`);
-    console.log(`Registered the folder: ${folder.name}`);
-    return parentFolderID;
-};
-
-const registerFile = async (file: File, parentFolderID: string) => {
-    const {name, extension, path, size, modified} = file;
-    const cloudID = await uploadFile(file, parentFolderID)
-    console.log(`FILE: ${file.name} was uploaded to parent: ${parentFolderID} and Has ID: ${cloudID}`)
-    await query(`INSERT INTO files (name, extension, path, cloud_id, last_modified_local, last_modified_cloud,
-                                    size) VALUE ("${name}", "${extension}", "${path}", "${cloudID}", "${modified}",
-                                                 "${modified}", "${size}")`)
-    return parentFolderID;
-};
 
 export const startFilesSync = async (directoryFolder: string, rootFolderCloudID: string) => {
+        const {folders, files} = traverseDirectory(directoryFolder)
+        itemsLogger.info("these are the folders:", folders)
+        itemsLogger.info("these are the files:", files)
 
 
-    const folders = await getFolders(directoryFolder);
-
-    const processFolders = async (rootFolder: Folder) => {
-        let rootFolderID = await getFolderID(folders.path);
-
-        if (!rootFolderID) {
-            rootFolderID = await registerFolder(folders, rootFolderCloudID);
-        }
-
-        for (let subFolder of rootFolder.folders) {
-            const folderIsRegistered = await getFolderID(subFolder.path);
-
-            if (!folderIsRegistered) {
-                const parentID = await query(`SELECT cloudID
-                                              FROM folders
-                                              WHERE name = "${subFolder.parentFolderName}"`)
-                console.log(subFolder.name)
-                console.log(parentID)
-                const subFolderID = await registerFolder(subFolder, parentID[0].cloudID);
-                await processFolders(subFolder);
-                console.log(`folder ${subFolder.name} has parent id: "${subFolderID}"`)
-            } else {
-                await processFolders(subFolder);
-            }
-        }
-    };
-
-    const processFiles = async () => {
-        const folders = await query(`SELECT path
-                                     from folders`);
-        for (let folder of folders) {
-            const parentFolderID = await getFolderID(folder.path);
-            const files = getFiles(folder.path);
-            for (const file of files) {
-                const fileIsRegistered = await query(`SELECT name
-                                                      FROM files
-                                                      WHERE name = "${file.name}"`);
-                if (fileIsRegistered.length === 0)
-                    await registerFile(file, parentFolderID)
-            }
-        }
+        await processFolders(folders, rootFolderCloudID)
+        await processFiles(files)
     }
-    await processFolders(folders)
-    await processFiles()
-};
+;
