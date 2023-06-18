@@ -1,7 +1,7 @@
 import query from "../../services/mysql";
 import {itemsLogger} from "../../app";
 import {Folder, File} from "../types";
-import {createDriveFolder, uploadItem,} from "../googleDrive/googleDriveAPI";
+import {uploadItem} from "../googleDrive/googleDriveAPI";
 
 export const getFolderID = async (folderPath: string): Promise<string | null> => {
     const result = await query(`SELECT cloudID
@@ -16,16 +16,18 @@ export const getFolderID = async (folderPath: string): Promise<string | null> =>
 export const registerItem = async (item: Folder | File, parentFolderID: string): Promise<string> => {
     const cloudID = await uploadItem(item, parentFolderID);
     if ('size' in item) {
-        const {name, extension, path, size, modified} = item;
+        const {name, extension, path, size, modifiedDate, parentFolder} = item;
         itemsLogger.info(`\`FILE: ${item.name} was uploaded to parent: ${parentFolderID} and Has ID: ${cloudID}`)
-        await query(`INSERT INTO files (name, extension, path, cloud_id, last_modified_local, last_modified_cloud,
-                                        size) VALUE ("${name}", "${extension}", "${path}", "${cloudID}", "${modified}",
-                                                 "${modified}", "${size}")`)
+        await query(`INSERT INTO files (name, extension, path, parentFolder, cloudID, lastModifiedLocal,
+                                        lastModifiedCloud,
+                                        size) VALUE ("${name}", "${extension}", "${path}", "${parentFolder}",
+                                                     "${cloudID}", "${modifiedDate}",
+                                                     "${modifiedDate}", "${size}")`)
     } else {
-        const {name, path} = item;
+        const {name, path, modifiedDate} = item;
         itemsLogger.info(`\`FOLDER: ${item.name} was uploaded to parent: ${parentFolderID} and Has ID: ${cloudID}`)
-        await query(`INSERT INTO folders (name, path, cloudID)
-                     VALUES ("${name}", "${path}", "${cloudID}")`);
+        await query(`INSERT INTO folders (name, path, cloudID, modifiedDate)
+                     VALUES ("${name}", "${path}", "${cloudID}", "${modifiedDate}")`);
     }
 
     return parentFolderID;

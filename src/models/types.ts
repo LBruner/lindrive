@@ -3,7 +3,7 @@ export interface File {
     size: number;
     extension: string;
     path: string;
-    modified?: string;
+    modifiedDate: string;
     parentFolder?: string,
     cloudID?: string
 }
@@ -11,7 +11,8 @@ export interface File {
 export interface Folder {
     name: string;
     path: string;
-    parentFolderName: string
+    parentFolderName: string,
+    modifiedDate: string,
     cloudID?: string,
     parentFolderID?: string
 }
