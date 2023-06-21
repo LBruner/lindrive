@@ -4,7 +4,9 @@
   "description": "Welcome to the Google Drive on Linux experience.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:build": "tsc -w",
+    "start:run": "nodemon build/server.js",
+    "start": "concurrently npm:start:*"
   },
   "repository": {
     "type": "git",
@@ -17,6 +19,8 @@
   },
   "homepage": "https://github.com/LBruner/lindrive#readme",
   "dependencies": {
+    "@types/chokidar": "^2.1.3",
+    "concurrently": "^8.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
