@@ -1,36 +1,44 @@
 import * as path from "path";
 import * as fs from "fs";
 import {drive} from "./googleAuth";
-import {File, Folder} from "../types";
+import {File} from "../types";
 import mime from "mime";
 import {driveLogger} from "../../app";
 
-export const uploadFile = async (file: File, parentFolder: string) => {
-    const filePath = path.resolve(file.path);
+type FileData = {
+    filePath: string,
+    fileExtension: string,
+    fileParentCloudID: string,
+    fileName: string,
+}
+export const uploadFile = async (fileData: FileData) => {
+    const {filePath, fileParentCloudID, fileExtension, fileName} = fileData;
     const media = {
-        mimeType: mime.lookup(file.extension),
+        mimeType: mime.lookup(fileExtension),
         body: fs.createReadStream(filePath)
     };
 
     try {
         const res = await drive.files.create({
             requestBody: {
-                name: file.name,
-                parents: [parentFolder]
+                name: filePath,
+                parents: [fileParentCloudID]
             },
             media: media,
             fields: 'id',
         });
-        driveLogger.info(`File: ${file.name} uploaded to Google Drive with id: ${res.data.id}`);
+        console.log("UPLOADED",res.data.id)
+        // driveLogger.info(`File: ${fileName} uploaded to Google Drive with id: ${res.data.id}`);
         return res.data.id;
     } catch (e) {
         console.log(e);
     }
 };
 
-export const createDriveFolder = async (folder: Folder, parentFolder: string) => {
+export const createDriveFolder = async (folderName: string, parentFolder: string) => {
+    console.log(folderName, parentFolder)
     const requestBody = {
-        name: folder.name,
+        name: folderName,
         mimeType: 'application/vnd.google-apps.folder',
         parents: [parentFolder]
     };
@@ -40,20 +48,13 @@ export const createDriveFolder = async (folder: Folder, parentFolder: string) =>
             requestBody,
             fields: 'id',
         });
-        driveLogger.info(`Folder ${folder.name} was created with id: ${file.data.id}`);
+        driveLogger.info(`Folder ${folderName} was created with id: ${file.data.id}`);
         return file.data.id;
-    } catch (e) {
-        console.log(e);
+    } catch (e: any) {
+        console.log(`Item could not be created! Error: ${e.message}`);
     }
 };
 
-export const uploadItem = async (item: Folder | File, parentFolder: string) => {
-    if ('extension' in item) {
-        return uploadFile(item, parentFolder);
-    } else {
-        return createDriveFolder(item, parentFolder);
-    }
-};
 
 export const updateCloudFile = async (file: File) => {
     const filePath = path.resolve(file.path);
