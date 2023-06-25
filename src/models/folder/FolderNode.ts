@@ -1,4 +1,4 @@
-import {ItemNode} from "./ItemNode";
+import {INode} from "./ItemsNode";
 import query from "../../services/mysql";
 import fs from "fs";
 import path from "path";
@@ -6,14 +6,14 @@ import {getRegisteredItem} from "../files/files.mysql";
 import {TableIdentifier} from "../../services/types";
 import {createDriveFolder} from "../googleDrive/googleDriveAPI";
 
-export class FolderNode extends ItemNode {
+
+export class FolderNode implements INode{
     name: string;
     cloudID: string | undefined;
     modifiedDate: string;
     parentFolderPath: string;
 
     constructor(public itemPath: string, private rootFolderID: string) {
-        super();
         const {name, parentFolderName, modifiedDate} = this.getItemDetails();
         this.name = name;
         this.parentFolderPath = parentFolderName;
@@ -56,8 +56,13 @@ export class FolderNode extends ItemNode {
         const dbModifiedDate = new Date(results.modifiedDate).toISOString().slice(0, 19);
         const localModifiedDate = new Date(this.modifiedDate).toISOString().slice(0, 19);
 
-        console.log(this.name, localModifiedDate, dbModifiedDate);
-        return localModifiedDate > dbModifiedDate
+        return localModifiedDate > dbModifiedDate;
+    }
+
+    async updateItem(): Promise<void> {
+        return await query(`UPDATE folders
+                            SET modifiedDate = "${new Date().toISOString().slice(0,19)}"
+                            WHERE path = "${this.itemPath}"`);
     }
 
 }

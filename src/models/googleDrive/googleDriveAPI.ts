@@ -1,17 +1,11 @@
-import * as path from "path";
 import * as fs from "fs";
 import {drive} from "./googleAuth";
-import {File} from "../types";
 import mime from "mime";
 import {driveLogger} from "../../app";
+import {FileUpdateData, FileUploadData} from "./types";
 
-type FileData = {
-    filePath: string,
-    fileExtension: string,
-    fileParentCloudID: string,
-    fileName: string,
-}
-export const uploadFile = async (fileData: FileData) => {
+
+export const uploadFile = async (fileData: FileUploadData) => {
     const {filePath, fileParentCloudID, fileExtension, fileName} = fileData;
     const media = {
         mimeType: mime.lookup(fileExtension),
@@ -21,13 +15,13 @@ export const uploadFile = async (fileData: FileData) => {
     try {
         const res = await drive.files.create({
             requestBody: {
-                name: filePath,
+                name: fileName,
                 parents: [fileParentCloudID]
             },
             media: media,
             fields: 'id',
         });
-        console.log("UPLOADED",res.data.id)
+        console.log("UPLOADED", res.data.id)
         // driveLogger.info(`File: ${fileName} uploaded to Google Drive with id: ${res.data.id}`);
         return res.data.id;
     } catch (e) {
@@ -56,19 +50,19 @@ export const createDriveFolder = async (folderName: string, parentFolder: string
 };
 
 
-export const updateCloudFile = async (file: File) => {
-    const filePath = path.resolve(file.path);
+export const updateCloudFile = async (fileData: FileUpdateData) => {
+    const {fileID, fileName, filePath, fileExtension} = fileData;
     try {
         await drive.files.update({
-            fileId: file.cloudID,
+            fileId: fileID,
             media: {
-                mimeType: mime.lookup(file.extension),
+                mimeType: mime.lookup(fileExtension),
                 body: fs.createReadStream(filePath),
             }
         })
-        console.log(`File: ${file.name} updated on Google Drive with id: ${file.cloudID}`)
+        console.log(`File: ${fileName} updated on Google Drive with id: ${fileID}`)
     } catch (e) {
-        console.log(`File: ${file.name} could not be updated.
+        console.log(`File: ${fileName} could not be updated.
         Error: ${e}`)
     }
 }
