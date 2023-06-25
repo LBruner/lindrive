@@ -1,9 +1,9 @@
-import {ItemNode} from "../folder/ItemNode";
+import {INode} from "../folder/ItemsNode";
 import fs from "fs";
 import path from "path";
 import {TableIdentifier} from "../../services/types";
 import {getRegisteredItem} from "./files.mysql";
-import {uploadFile} from "../googleDrive/googleDriveAPI";
+import {updateCloudFile, uploadFile} from "../googleDrive/googleDriveAPI";
 import query from "../../services/mysql";
 
 interface FileDetails {
@@ -14,7 +14,7 @@ interface FileDetails {
     size: number,
 }
 
-export class FileNode extends ItemNode {
+export class FileNode implements INode {
     cloudID: string | undefined;
     extension: string;
     modifiedDate: string;
@@ -23,7 +23,6 @@ export class FileNode extends ItemNode {
     size: number;
 
     constructor(public itemPath: string) {
-        super()
         const {name, parentFolderName, modifiedDate, size, extension} = this.getItemDetails();
         this.extension = extension;
         this.modifiedDate = modifiedDate;
@@ -31,6 +30,8 @@ export class FileNode extends ItemNode {
         this.parentFolderPath = parentFolderName;
         this.size = size;
     }
+
+
 
     getItemDetails(): FileDetails {
         const stat = fs.statSync(this.itemPath);
@@ -65,6 +66,15 @@ export class FileNode extends ItemNode {
             fileParentCloudID: cloudID!,
             fileName: this.name,
         })
+    }
+
+    async updateItem(): Promise<void> {
+        const {name: fileName, extension: fileExtension, cloudID: fileID, itemPath: filePath,} = this;
+        await updateCloudFile({fileExtension, fileName, fileID, filePath});
+        await query(`UPDATE lindrive.files
+                     SET lastModifiedCloud = "${new Date().toISOString().slice(0, 19)}",
+                         lastModifiedLocal = "${new Date().toISOString().slice(0, 19)}"
+                     WHERE path = "${filePath}"`);
     }
 
     async isItemDirty(): Promise<boolean> {
