@@ -1,4 +1,4 @@
-import {INode} from "./ItemsNode";
+import {INode} from "./ItemNodes";
 import query from "../../services/mysql";
 import fs from "fs";
 import path from "path";
