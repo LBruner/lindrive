@@ -1,5 +1,5 @@
 import query from "../../services/mysql";
-import {deleteItemById} from "../googleDrive/googleDriveAPI";
+import {deleteCloudFile} from "../googleDrive/googleDriveAPI";
 
 export interface INode {
     name: string;
@@ -79,7 +79,7 @@ export class ItemNodes {
                          WHERE path = "${nodePath}"`);
         }
         console.log(nodeId[0].cloudID)
-        await deleteItemById(nodeId[0].cloudID);
+        await deleteCloudFile(nodeId[0].cloudID);
 
         console.log(`DELETE THE NODE: ${nodePath}`);
 

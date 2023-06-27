@@ -66,3 +66,12 @@ export const updateCloudFile = async (fileData: FileUpdateData) => {
         Error: ${e}`)
     }
 }
+
+export const deleteCloudFile = async (itemId: string) => {
+    try {
+        await drive.files.delete({fileId: itemId});
+        console.log('Item deleted successfully.');
+    } catch (error: any) {
+        console.error('Error deleting item:', error.message);
+    }
+}
