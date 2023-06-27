@@ -1,50 +1,63 @@
 import chokidar from 'chokidar';
 import {FolderNode} from "../folder/FolderNode";
 import {FileNode} from "../files/FileNode";
-import {INode, ItemsNode} from "../folder/ItemsNode";
+import {INode} from "../folder/ItemNodes";
 
+type WatchEvents = "add" | "addDir" | "change" | "unlink" | "unlinkDir" | "error";
 
 export class Watcher {
-    allNodes: ItemsNode = new ItemsNode()
+    watcher: chokidar.FSWatcher;
 
-    constructor(public directory: string, public rootCloudID: string) {
-        this.watchDirectory();
-    }
-
-    async createInitialFolders() {
-        const initialFolders: INode[] = []
-        const promise = new Promise<void>((resolve, reject) => {
-            chokidar.watch(this.directory).on("addDir", (eventName) => {
-                const folderNode = new FolderNode(eventName, this.rootCloudID);
-                initialFolders.push(folderNode);
-            }).on("ready", async () => {
-                console.log("OI", initialFolders)
-                await this.allNodes.addMultipleNodes(initialFolders);
-                resolve();
-            });
-        })
-        //TODO REMOVE LISTENERS!!
-        return promise;
-    }
-
-    async watchDirectory() {
-        await this.createInitialFolders();
-        console.log("FINSHED")
-        await chokidar.watch(this.directory, {ignoreInitial: true}).on('addDir', async (eventName) => {
-            const folderNode = new FolderNode(eventName, this.rootCloudID);
-            await this.allNodes.addSingleNode(folderNode);
+    constructor(public path: string) {
+        this.watcher = chokidar.watch(path, {
+            ignoreInitial: true,
+            awaitWriteFinish: {stabilityThreshold: 2000, pollInterval: 100}
         });
-        //
-        chokidar.watch(this.directory).on('add', async (eventName: string) => {
-            const fileNode = new FileNode(eventName);
-            await this.allNodes.addSingleNode(fileNode);
-        });
-        console.log("FINSHED")
-
-
-        chokidar.watch(this.directory,{awaitWriteFinish: {pollInterval: 100, stabilityThreshold: 50}}).on('change', async (eventName: string) => {
-            await this.allNodes.updateNode(eventName);
-            console.log("CHANGED", eventName);
-        })
     }
+
+    public on(event: WatchEvents, callback: (...args: any[]) => void): void {
+        this.watcher.on(event, callback);
+    }
+
+    async getInitialNodes(rootCloudID: string): Promise<INode[]> {
+        let descendingNodes: INode[]
+
+        descendingNodes = await this.getInitialFolders(rootCloudID);
+        descendingNodes.push(...await this.getInitialFiles())
+
+        return descendingNodes;
+    }
+
+    async getInitialFolders(rootCloudID: string) {
+        const temporaryWatcher = chokidar.watch(this.path);
+        const initialNodes: INode[] = [];
+
+        const promise: Promise<INode[]> = new Promise((resolve) => {
+            temporaryWatcher.on('addDir', (eventName: string) => {
+                const folderNode = new FolderNode(eventName, rootCloudID);
+                initialNodes.push(folderNode);
+            }).on('ready', async () => {
+                resolve(initialNodes)
+            })
+        })
+        return await promise;
+    }
+
+    async getInitialFiles() {
+        const temporaryWatcher = chokidar.watch(this.path);
+        const initialNodes: INode[] = [];
+
+        const promise: Promise<INode[]> = new Promise((resolve) => {
+            temporaryWatcher.on('add', (eventName: string) => {
+                const fileNode = new FileNode(eventName);
+                initialNodes.push(fileNode);
+            }).on('ready', async () => {
+                resolve(initialNodes)
+            })
+        })
+
+        return await promise;
+    }
+
+
 }

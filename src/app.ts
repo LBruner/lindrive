@@ -3,7 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import process from "process";
 import winston from 'winston';
-import {Watcher} from "./models/watcher/Watcher";
+import {NodeWatcher} from "./models/watcher/NodeWatcher";
 
 const app = express();
 
@@ -30,9 +30,8 @@ export const driveLogger = winston.createLogger({
     ],
 });
 
-// startFilesSync(process.env.CURSOS_DIRECTORY!, process.env.DOCUMENTS_FOLDER_KEY!)
-const watcher = new Watcher(process.env.CURSOS_DIRECTORY!, process.env.DOCUMENTS_FOLDER_KEY!);
 
+const watcher= new NodeWatcher(process.env.CURSOS_DIRECTORY!, process.env.DOCUMENTS_FOLDER_KEY!)
 app.get('/*', (req, res) => {
     res.send("OI");
 })
