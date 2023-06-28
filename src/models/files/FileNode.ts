@@ -1,4 +1,4 @@
-import {INode} from "../folder/ItemNodes";
+import {INode} from "../nodes/ItemNodes";
 import fs from "fs";
 import path from "path";
 import {TableIdentifier} from "../../services/types";

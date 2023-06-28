@@ -1,46 +1,19 @@
 import {ApiWatcher} from "./ApiWatcher";
-import {ItemNodes} from "../folder/ItemNodes";
+import {ItemNodes} from "../nodes/ItemNodes";
 import {FileNode} from "../files/FileNode";
 import {FolderNode} from "../folder/FolderNode";
-import query from "../../services/mysql";
 
 export class NodeWatcher {
     itemNodes: ItemNodes = new ItemNodes();
     watcher: ApiWatcher;
 
     constructor(private path: string, private rootCloudId: string) {
-        this.watcher = new ApiWatcher(path);
+        this.watcher = new ApiWatcher(path, {
+            awaitWriteFinish: {stabilityThreshold: 2000, pollInterval: 100},
+            persistent: true,
+        });
         this.watchDirectory();
     };
-
-    handleInitialNodes = async () => {
-        const initialNodes = await this.watcher.getInitialNodes(this.rootCloudId);
-        await this.itemNodes.addMultipleNodes(initialNodes);
-
-        const deleteErasedNotes = async () => {
-            const allFoldersPath = await query(`SELECT path
-                                                FROM folders`);
-            const allFilesPath = await query(`SELECT path
-                                              FROM files`);
-            const allFoldersFormatted = allFoldersPath.map((item: { path: string }) => item.path);
-            const allFilesFormatted = allFilesPath.map((item: { path: string }) => item.path);
-
-            const initialNodesPath = initialNodes.map((item) => item.itemPath)
-
-            const toDeleteFolders = allFoldersFormatted.filter((item: string) => !initialNodesPath.includes(item));
-            const toDeleteFiles = allFilesFormatted.filter((item: string) => !initialNodesPath.includes(item));
-
-            for (let node of toDeleteFolders) {
-                await this.itemNodes.deleteNode(node, "FOLDER");
-            }
-
-            for (let node of toDeleteFiles) {
-                await this.itemNodes.deleteNode(node, "FILE");
-            }
-        }
-
-        await deleteErasedNotes();
-    }
 
     handleNodesEvents = () => {
         this.watcher.onAddFolder(this.addFolderHandler);
@@ -51,7 +24,6 @@ export class NodeWatcher {
     };
 
     watchDirectory = async () => {
-        await this.handleInitialNodes();
         await this.handleNodesEvents();
     }
 
