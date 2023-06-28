@@ -45,7 +45,6 @@ export class FolderNode implements INode{
 
 
     async getRegisteredItem(): Promise<{ cloudID: string | undefined }> {
-        console.log(this.itemPath)
         return await getRegisteredItem(this.itemPath, TableIdentifier.FOLDERS);
     }
 

@@ -1,7 +1,4 @@
 import chokidar from 'chokidar';
-import {FolderNode} from "../folder/FolderNode";
-import {FileNode} from "../files/FileNode";
-import {INode} from "../nodes/ItemNodes";
 
 export class ApiWatcher {
     private readonly watcher: chokidar.FSWatcher;
@@ -29,46 +26,4 @@ export class ApiWatcher {
     onFolderDelete = (callback: (eventName: string) => void): void => {
         this.watcher.on('unlinkDir', callback);
     }
-
-    async getInitialNodes(rootCloudID: string): Promise<INode[]> {
-        let descendingNodes: INode[];
-
-        descendingNodes = await this.getInitialFolders(rootCloudID);
-        descendingNodes.push(...await this.getInitialFiles());
-
-        return descendingNodes;
-    }
-
-    async getInitialFolders(rootCloudID: string) {
-        const temporaryWatcher = chokidar.watch(this.path);
-        const initialNodes: INode[] = [];
-
-        const promise: Promise<INode[]> = new Promise((resolve) => {
-            temporaryWatcher.on('addDir', (eventName: string) => {
-                const folderNode = new FolderNode(eventName, rootCloudID);
-                initialNodes.push(folderNode);
-            }).on('ready', async () => {
-                resolve(initialNodes);
-            })
-        })
-        return await promise;
-    }
-
-    async getInitialFiles() {
-        const temporaryWatcher = chokidar.watch(this.path);
-        const initialNodes: INode[] = [];
-
-        const promise: Promise<INode[]> = new Promise((resolve) => {
-            temporaryWatcher.on('add', (eventName: string) => {
-                const fileNode = new FileNode(eventName);
-                initialNodes.push(fileNode);
-            }).on('ready', async () => {
-                resolve(initialNodes)
-            })
-        })
-
-        return await promise;
-    }
-
-
 }

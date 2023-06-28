@@ -29,12 +29,12 @@ export class NodeWatcher {
 
     private addFolderHandler = (nodePath: string) => {
         const folderNode = new FolderNode(nodePath, this.rootCloudId);
-        this.itemNodes.addSingleNode(folderNode);
+        this.itemNodes.addNode(folderNode);
     }
 
     private addFileHandler = (nodePath: string) => {
         const fileNode = new FileNode(nodePath);
-        this.itemNodes.addSingleNode(fileNode);
+        this.itemNodes.addNode(fileNode);
     }
 
     private updateFileHandler = async (nodePath: string) => {

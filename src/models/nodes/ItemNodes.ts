@@ -24,37 +24,27 @@ export interface INode {
 export class ItemNodes {
     private allNodes: INode[] = [];
 
-    constructor() {
-    }
-
-    async addSingleNode(node: INode) {
+    addNode = async (node: INode) => {
         this.allNodes.push(node);
         await this.processAddNode(node);
     }
 
-    async addMultipleNodes(nodes: INode[]) {
-        this.allNodes.push(...nodes);
-        for (const node of nodes) {
-            await this.processAddNode(node);
-        }
-        console.log('Finished processing initial nodes');
-    }
-
-    async getNode(nodePath: string) {
+    getNode = async (nodePath: string) => {
         return this.allNodes.find((node) => node.itemPath === nodePath);
     };
 
-    async updateNode(nodePath: string) {
+    updateNode = async (nodePath: string) => {
         const node = this.allNodes.find((node) => node.itemPath === nodePath);
 
-        console.log("OI",node)
+        console.log("OI", node)
 
         if (!node) return; //TODO: ADD DELETE NODE
         await node.updateItem();
         console.log(`Item: ${node.name} was updated`);
     }
 
-    async deleteNode(nodePath: string, nodeType: 'FOLDER' | 'FILE') {
+    deleteNode = async (nodePath: string, nodeType: 'FOLDER' | 'FILE') => {
+        console.log(nodeType)
         const deleteNode = await this.getNode(nodePath);
         let nodeId;
 
@@ -80,14 +70,19 @@ export class ItemNodes {
                          FROM files
                          WHERE path = "${nodePath}"`);
         }
-        console.log(nodeId[0].cloudID)
+        console.log(nodeId)
+        if(nodeId.length === 0){
+            console.log("Can't find the node.")
+            return;
+        }
+
         await deleteCloudFile(nodeId[0].cloudID);
 
         console.log(`DELETE THE NODE: ${nodePath}`);
 
     };
 
-    async processAddNode(node: INode) {
+    processAddNode = async (node: INode) => {
         const isRegistered = await node.getRegisteredItem();
 
         if (!isRegistered) {

@@ -14,8 +14,6 @@ connection.connect((err) => {
         console.error('Error connecting to MySQL:', err);
         throw err;
     }
-
-    console.log('Connected to MySQL successfully!');
 });
 
 const query = util.promisify(connection.query).bind(connection);
