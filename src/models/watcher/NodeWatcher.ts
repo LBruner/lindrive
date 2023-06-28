@@ -1,19 +1,19 @@
-import {Watcher} from "./Watcher";
+import {ApiWatcher} from "./ApiWatcher";
 import {ItemNodes} from "../folder/ItemNodes";
 import {FileNode} from "../files/FileNode";
 import {FolderNode} from "../folder/FolderNode";
 import query from "../../services/mysql";
 
 export class NodeWatcher {
-    itemNodes: ItemNodes = new ItemNodes()
-    watcher: Watcher;
+    itemNodes: ItemNodes = new ItemNodes();
+    watcher: ApiWatcher;
 
     constructor(private path: string, private rootCloudId: string) {
-        this.watcher = new Watcher(path);
-        this.watchDirectory()
+        this.watcher = new ApiWatcher(path);
+        this.watchDirectory();
     };
 
-    async handleInitialNodes() {
+    handleInitialNodes = async () => {
         const initialNodes = await this.watcher.getInitialNodes(this.rootCloudId);
         await this.itemNodes.addMultipleNodes(initialNodes);
 
@@ -39,43 +39,42 @@ export class NodeWatcher {
             }
         }
 
-        await deleteErasedNotes()
+        await deleteErasedNotes();
     }
 
-    async handleNewNodes() {
-        this.watcher.on('add', (eventName: string) => {
-            const fileNode = new FileNode(eventName);
-            this.itemNodes.addSingleNode(fileNode);
-        })
-
-        this.watcher.on('addDir', (eventName: string) => {
-            const folderNode = new FolderNode(eventName, this.rootCloudId);
-            console.log(folderNode)
-            this.itemNodes.addSingleNode(folderNode);
-        })
-    }
-
-    async handleNodesUpdate() {
-        this.watcher.on('change', async (eventName: string) => {
-            await this.itemNodes.updateNode(eventName);
-        })
+    handleNodesEvents = () => {
+        this.watcher.onAddFolder(this.addFolderHandler);
+        this.watcher.onAddFile(this.addFileHandler);
+        this.watcher.onFileUpdate(this.updateFileHandler);
+        this.watcher.onFileDelete(this.deleteFileHandler);
+        this.watcher.onFolderDelete(this.deleteFolderHandler);
     };
 
-    async handleNodesDelete() {
-        this.watcher.on('unlink', async (eventName: string) => {
-            console.log(eventName);
-            await this.itemNodes.deleteNode(eventName, 'FILE');
-        })
-
-        this.watcher.on('unlinkDir', async (eventName: string) => {
-            await this.itemNodes.deleteNode(eventName, 'FOLDER');
-        })
-    };
-
-    async watchDirectory() {
+    watchDirectory = async () => {
         await this.handleInitialNodes();
-        await this.handleNewNodes();
-        await this.handleNodesUpdate();
-        await this.handleNodesDelete();
+        await this.handleNodesEvents();
     }
+
+    private addFolderHandler = (nodePath: string) => {
+        const folderNode = new FolderNode(nodePath, this.rootCloudId);
+        this.itemNodes.addSingleNode(folderNode);
+    }
+
+    private addFileHandler = (nodePath: string) => {
+        const fileNode = new FileNode(nodePath);
+        this.itemNodes.addSingleNode(fileNode);
+    }
+
+    private updateFileHandler = async (nodePath: string) => {
+        await this.itemNodes.updateNode(nodePath);
+    };
+
+    private deleteFileHandler = async (nodePath: string) => {
+        await this.itemNodes.deleteNode(nodePath, "FILE");
+    }
+
+    private deleteFolderHandler = async (nodePath: string) => {
+        await this.itemNodes.deleteNode(nodePath, "FOLDER");
+    }
+
 }

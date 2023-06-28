@@ -3,10 +3,8 @@ import {FolderNode} from "../folder/FolderNode";
 import {FileNode} from "../files/FileNode";
 import {INode} from "../folder/ItemNodes";
 
-type WatchEvents = "add" | "addDir" | "change" | "unlink" | "unlinkDir" | "error";
-
-export class Watcher {
-    watcher: chokidar.FSWatcher;
+export class ApiWatcher {
+    private readonly watcher: chokidar.FSWatcher;
 
     constructor(public path: string) {
         this.watcher = chokidar.watch(path, {
@@ -15,15 +13,31 @@ export class Watcher {
         });
     }
 
-    public on(event: WatchEvents, callback: (...args: any[]) => void): void {
-        this.watcher.on(event, callback);
+    onAddFolder = (callback: (nodePath: string) => void): void => {
+        this.watcher.on('addDir', callback);
+    };
+
+    onAddFile = (callback: (nodePath: string) => void): void => {
+        this.watcher.on('add', callback);
+    };
+
+    onFileUpdate = (callback: (eventName: string) => void): void => {
+        this.watcher.on('change', callback);
+    }
+
+    onFileDelete = (callback: (eventName: string) => void): void => {
+        this.watcher.on('unlink', callback);
+    }
+
+    onFolderDelete = (callback: (eventName: string) => void): void => {
+        this.watcher.on('unlinkDir', callback);
     }
 
     async getInitialNodes(rootCloudID: string): Promise<INode[]> {
-        let descendingNodes: INode[]
+        let descendingNodes: INode[];
 
         descendingNodes = await this.getInitialFolders(rootCloudID);
-        descendingNodes.push(...await this.getInitialFiles())
+        descendingNodes.push(...await this.getInitialFiles());
 
         return descendingNodes;
     }
@@ -37,7 +51,7 @@ export class Watcher {
                 const folderNode = new FolderNode(eventName, rootCloudID);
                 initialNodes.push(folderNode);
             }).on('ready', async () => {
-                resolve(initialNodes)
+                resolve(initialNodes);
             })
         })
         return await promise;

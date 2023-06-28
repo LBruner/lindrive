@@ -47,6 +47,8 @@ export class ItemNodes {
     async updateNode(nodePath: string) {
         const node = this.allNodes.find((node) => node.itemPath === nodePath);
 
+        console.log("OI",node)
+
         if (!node) return; //TODO: ADD DELETE NODE
         await node.updateItem();
         console.log(`Item: ${node.name} was updated`);
