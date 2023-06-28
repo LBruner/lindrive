@@ -1,16 +1,13 @@
 import chokidar from 'chokidar';
 import {FolderNode} from "../folder/FolderNode";
 import {FileNode} from "../files/FileNode";
-import {INode} from "../folder/ItemNodes";
+import {INode} from "../nodes/ItemNodes";
 
 export class ApiWatcher {
     private readonly watcher: chokidar.FSWatcher;
 
-    constructor(public path: string) {
-        this.watcher = chokidar.watch(path, {
-            ignoreInitial: true,
-            awaitWriteFinish: {stabilityThreshold: 2000, pollInterval: 100}
-        });
+    constructor(public path: string, watcherConfig:  chokidar.WatchOptions) {
+        this.watcher = chokidar.watch(path, watcherConfig);
     }
 
     onAddFolder = (callback: (nodePath: string) => void): void => {
