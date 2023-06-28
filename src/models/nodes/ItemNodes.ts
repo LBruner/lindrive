@@ -24,27 +24,36 @@ export interface INode {
 export class ItemNodes {
     private allNodes: INode[] = [];
 
-    addNode = async (node: INode) => {
+    addNode = async (node: INode): Promise<void> => {
         this.allNodes.push(node);
         await this.processAddNode(node);
     }
 
-    getNode = async (nodePath: string) => {
+    addMultipleNodes = async (nodes: INode[]) =>{
+        this.allNodes.push(...nodes);
+        for (const node of nodes) {
+            await this.processAddNode(node);
+        }
+        console.log('Finished processing initial nodes');
+    }
+
+    getNode = async (nodePath: string): Promise<INode | undefined> => {
         return this.allNodes.find((node) => node.itemPath === nodePath);
     };
 
-    updateNode = async (nodePath: string) => {
+    updateNode = async (nodePath: string): Promise<void> => {
         const node = this.allNodes.find((node) => node.itemPath === nodePath);
 
-        console.log("OI", node)
+        if (!node) {
+            console.log("Couldn't find node.");
+            return;
+        }
 
-        if (!node) return; //TODO: ADD DELETE NODE
         await node.updateItem();
         console.log(`Item: ${node.name} was updated`);
     }
 
-    deleteNode = async (nodePath: string, nodeType: 'FOLDER' | 'FILE') => {
-        console.log(nodeType)
+    deleteNode = async (nodePath: string, nodeType: 'FOLDER' | 'FILE'): Promise<void> => {
         const deleteNode = await this.getNode(nodePath);
         let nodeId;
 
@@ -70,19 +79,19 @@ export class ItemNodes {
                          FROM files
                          WHERE path = "${nodePath}"`);
         }
-        console.log(nodeId)
-        if(nodeId.length === 0){
+
+        if (nodeId.length === 0) {
             console.log("Can't find the node.")
             return;
         }
 
         await deleteCloudFile(nodeId[0].cloudID);
 
-        console.log(`DELETE THE NODE: ${nodePath}`);
+        console.log(`The node was deleted: ${nodePath}`);
 
     };
 
-    processAddNode = async (node: INode) => {
+    processAddNode = async (node: INode): Promise<void> => {
         const isRegistered = await node.getRegisteredItem();
 
         if (!isRegistered) {

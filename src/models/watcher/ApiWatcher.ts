@@ -3,7 +3,7 @@ import chokidar from 'chokidar';
 export class ApiWatcher {
     private readonly watcher: chokidar.FSWatcher;
 
-    constructor(public path: string, watcherConfig:  chokidar.WatchOptions) {
+    constructor(public path: string, watcherConfig: chokidar.WatchOptions) {
         this.watcher = chokidar.watch(path, watcherConfig);
     }
 

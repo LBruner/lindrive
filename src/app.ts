@@ -3,7 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import process from "process";
 import winston from 'winston';
-import {NodeWatcher} from "./models/watcher/NodeWatcher";
+import {NodeTracker} from "./models/watcher/NodeTracker";
 
 const app = express();
 
@@ -31,7 +31,7 @@ export const driveLogger = winston.createLogger({
 });
 
 
-const watcher= new NodeWatcher(process.env.CURSOS_DIRECTORY!, process.env.DOCUMENTS_FOLDER_KEY!)
+const watcher= new NodeTracker(process.env.CURSOS_DIRECTORY!, process.env.DOCUMENTS_FOLDER_KEY!)
 app.get('/*', (req, res) => {
     res.send("OI");
 })
