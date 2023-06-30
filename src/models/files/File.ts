@@ -1,10 +1,10 @@
 import {DataTypes, Model} from "sequelize";
-import sequelizeConfig from "../../db/sequelize.config";
+import sequelize from "../../db/sequelize.config";
 
 export interface FileAttributes {
     cloudID?: string
     extension: string;
-    id: number;
+    id?: number;
     name: string;
     modifiedDateLocal: string;
     modifiedDateCloud: string;
@@ -14,7 +14,7 @@ export interface FileAttributes {
 }
 
 class File extends Model<FileAttributes> implements FileAttributes {
-    id!: number;
+    id?: number;
     cloudID?: string;
     extension!: string;
     name!: string;
@@ -65,7 +65,7 @@ File.init({
         allowNull: false,
     }
 }, {
-    sequelize: sequelizeConfig,
+    sequelize,
     modelName: 'file',
     createdAt: true,
     updatedAt: false

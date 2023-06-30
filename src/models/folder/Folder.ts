@@ -1,5 +1,5 @@
 import {DataTypes, Model} from "sequelize";
-import sequelizeConfig from "../../db/sequelize.config";
+import sequelize from "../../db/sequelize.config";
 
 export interface FolderAttributes {
     name: string;
@@ -39,12 +39,8 @@ Folder.init({
         type: DataTypes.STRING,
         allowNull: false
     },
-    parentFolderID: {
-        type: DataTypes.STRING,
-        allowNull: false
-    }
 }, {
-    sequelize: sequelizeConfig,
+    sequelize,
     modelName: "folder",
     timestamps: false
 });
