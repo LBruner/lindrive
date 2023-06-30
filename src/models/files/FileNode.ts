@@ -1,67 +1,77 @@
 import {INode} from "../nodes/ItemNodes";
 import fs from "fs";
 import path from "path";
-import {TableIdentifier} from "../../services/types";
-import {getRegisteredItem} from "./files.mysql";
 import {updateCloudFile, uploadFile} from "../googleDrive/googleDriveAPI";
-import query from "../../services/mysql";
+import File from "./File";
+import {getItemCloudID, getModifiedDate, updateModifiedDate} from "../../db/sequelize";
 
 interface FileDetails {
     extension: string,
-    modifiedDate: string,
+    modifiedDateLocal: string,
     name: string,
     parentFolderPath: string,
     size: number,
 }
 
 export class FileNode implements INode {
-    cloudID: string | undefined;
+    cloudID: string | null;
     extension: string;
-    modifiedDate: string;
+    modifiedDateLocal: string;
     name: string;
     parentFolderPath: string;
     size: number;
 
-    constructor(public itemPath: string) {
-        const {name, parentFolderPath, modifiedDate, size, extension} = this.getItemDetails();
+    constructor(public path: string) {
+        const {name, parentFolderPath, modifiedDateLocal, size, extension} = this.getItemDetails();
         this.extension = extension;
-        this.modifiedDate = modifiedDate;
+        this.modifiedDateLocal = modifiedDateLocal;
         this.name = name;
         this.parentFolderPath = parentFolderPath;
         this.size = size;
+        this.cloudID = null;
     }
 
 
-
     getItemDetails(): FileDetails {
-        const stat = fs.statSync(this.itemPath);
+        const stat = fs.statSync(this.path);
 
         return {
-            name: path.basename(this.itemPath),
-            parentFolderPath: path.dirname(this.itemPath),
-            modifiedDate: new Date(stat.mtime).toISOString().slice(0, 19),
-            extension: path.extname(this.itemPath),
+            name: path.basename(this.path),
+            parentFolderPath: path.dirname(this.path),
+            modifiedDateLocal: new Date(stat.mtime).toISOString().slice(0, 19),
+            extension: path.extname(this.path),
             size: stat.size,
         };
     }
 
-    async getRegisteredItem(): Promise<{ cloudID: string | undefined }> {
-        return await getRegisteredItem(this.itemPath, TableIdentifier.FILES);
+    async getRegisteredItem(): Promise<string | null> {
+        return getItemCloudID(this.path, 'FILE');
     }
 
     async register(): Promise<void> {
-        await query(`INSERT INTO lindrive.files (name, extension, path, parentFolderPath, cloudID, lastModifiedLocal,
-                                                 modifiedDateCloud,
-                                                 size) VALUE ("${this.name}", "${this.extension}", "${this.itemPath}",
-                                                              "${this.parentFolderPath}", "${this.cloudID}",
-                                                              "${this.modifiedDate}", "${this.modifiedDate}",
-                                                              "${this.size}")`);
+
+        const {name, extension, path, parentFolderPath, modifiedDateLocal, size, cloudID} = this;
+
+        if (!cloudID) {
+            throw new Error('CloudID is null.')
+        }
+
+        await File.create({
+            name,
+            extension,
+            path,
+            parentFolderPath,
+            modifiedDateLocal,
+            size,
+            cloudID,
+            modifiedDateCloud: modifiedDateLocal,
+        })
     }
 
     async uploadToDrive(): Promise<string> {
-        const {cloudID} = await getRegisteredItem(this.parentFolderPath, TableIdentifier.FOLDERS);
+        const cloudID = await getItemCloudID(this.parentFolderPath, 'FOLDER');
         return await uploadFile({
-            filePath: this.itemPath,
+            filePath: this.path,
             fileExtension: this.extension,
             fileParentCloudID: cloudID!,
             fileName: this.name,
@@ -69,20 +79,25 @@ export class FileNode implements INode {
     }
 
     async updateItem(): Promise<void> {
-        const {name: fileName, extension: fileExtension, cloudID: fileID, itemPath: filePath,} = this;
-        await updateCloudFile({fileExtension, fileName, fileID, filePath});
-        await query(`UPDATE lindrive.files
-                     SET lastModifiedCloud = "${new Date().toISOString().slice(0, 19)}",
-                         lastModifiedLocal = "${new Date().toISOString().slice(0, 19)}"
-                     WHERE path = "${filePath}"`);
+        const {name: fileName, extension: fileExtension, cloudID, path: filePath,} = this;
+
+        if (!cloudID) {
+            throw new Error('CloudID is null.')
+        }
+
+        await updateCloudFile({fileExtension, fileName, fileID: cloudID, filePath});
+        await updateModifiedDate(filePath, "FILE");
     }
 
     async isItemDirty(): Promise<boolean> {
-        const [results] = await query(`SELECT lastModifiedLocal
-                                       from lindrive.files
-                                       WHERE path = "${this.itemPath}"`);
-        const dbModifiedDate = new Date(results.lastModifiedLocal).toISOString().slice(0, 19);
-        const localModifiedDate = new Date(this.modifiedDate).toISOString().slice(0, 19);
+        const results = await getModifiedDate(this.path, 'FILE');
+
+        if (!results) {
+            throw new Error('Error getting modified date');
+        }
+
+        const dbModifiedDate = new Date(results).toISOString().slice(0, 19);
+        const localModifiedDate = new Date(this.modifiedDateLocal).toISOString().slice(0, 19);
 
         return localModifiedDate > dbModifiedDate
     }

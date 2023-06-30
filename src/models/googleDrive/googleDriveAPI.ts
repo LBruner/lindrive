@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import {drive} from "./googleAuth";
 import mime from "mime";
-import {driveLogger} from "../../app";
 import {FileUpdateData, FileUploadData} from "./types";
 
 
@@ -42,7 +41,6 @@ export const createDriveFolder = async (folderName: string, parentFolder: string
             requestBody,
             fields: 'id',
         });
-        driveLogger.info(`Folder ${folderName} was created with id: ${file.data.id}`);
         return file.data.id;
     } catch (e: any) {
         console.log(`Item could not be created! Error: ${e.message}`);

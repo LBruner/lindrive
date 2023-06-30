@@ -1,8 +1,9 @@
-import {Sequelize} from 'sequelize';
+import {Sequelize} from "sequelize";
 
-const sequelizeConfig = new Sequelize(process.env.MYSQL_DATABASE!, process.env.MYSQL_USER!, process.env.MYSQL_ROOT_PASSWORD, {
+const sequelize = new Sequelize(process.env.MYSQL_DATABASE!, process.env.MYSQL_USER!, process.env.MYSQL_ROOT_PASSWORD, {
     host: 'localhost',
     dialect: 'mysql',
+    logging: false
 });
 
-export default sequelizeConfig;
+export default sequelize;

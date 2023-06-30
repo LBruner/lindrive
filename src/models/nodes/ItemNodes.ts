@@ -1,20 +1,20 @@
-import query from "../../services/mysql";
 import {deleteCloudFile} from "../googleDrive/googleDriveAPI";
+import {deleteNode, getItemCloudID} from "../../db/sequelize";
 
 export interface INode {
     name: string;
-    cloudID: string | undefined;
-    itemPath: string
-    modifiedDate: string;
+    cloudID: string | null;
+    path: string
+    modifiedDateLocal: string;
     parentFolderPath: string;
 
     register(): void;
 
     uploadToDrive(): Promise<string>;
 
-    getItemDetails(): { name: string; parentFolderPath: string; modifiedDate: string };
+    getItemDetails(): { name: string; parentFolderPath: string; modifiedDateLocal: string };
 
-    getRegisteredItem(): Promise<{ cloudID: string | undefined }>;
+    getRegisteredItem(): Promise<string | null>;
 
     isItemDirty(): Promise<boolean>;
 
@@ -26,23 +26,23 @@ export class ItemNodes {
 
     addNode = async (node: INode): Promise<void> => {
         this.allNodes.push(node);
-        await this.processAddNode(node);
+        await this.startNodeTracking(node);
     }
 
-    addMultipleNodes = async (nodes: INode[]) =>{
+    addMultipleNodes = async (nodes: INode[]) => {
         this.allNodes.push(...nodes);
         for (const node of nodes) {
-            await this.processAddNode(node);
+            await this.startNodeTracking(node);
         }
         console.log('Finished processing initial nodes');
     }
 
     getNode = async (nodePath: string): Promise<INode | undefined> => {
-        return this.allNodes.find((node) => node.itemPath === nodePath);
+        return this.allNodes.find((node) => node.path === nodePath);
     };
 
     updateNode = async (nodePath: string): Promise<void> => {
-        const node = this.allNodes.find((node) => node.itemPath === nodePath);
+        const node = this.allNodes.find((node) => node.path === nodePath);
 
         if (!node) {
             console.log("Couldn't find node.");
@@ -54,51 +54,39 @@ export class ItemNodes {
     }
 
     deleteNode = async (nodePath: string, nodeType: 'FOLDER' | 'FILE'): Promise<void> => {
-        const deleteNode = await this.getNode(nodePath);
+        const deletingNode = await this.getNode(nodePath);
         let nodeId;
 
-        if (deleteNode) {
-            this.allNodes = this.allNodes.filter((node) => node.itemPath !== nodePath);
+        if (deletingNode) {
+            this.allNodes = this.allNodes.filter((node) => node.path !== nodePath);
         }
 
         if (nodeType == 'FOLDER') {
-            nodeId = await query(`SELECT cloudID
-                                  from folders
-                                  WHERE path = "${nodePath}"`)
-            await query(`DELETE
-                         FROM files
-                         WHERE parentFolderPath = "${nodePath}"`);
-            await query(`DELETE
-                         FROM folders
-                         WHERE path = "${nodePath}"`);
+            nodeId = await getItemCloudID(nodePath, 'FOLDER');
+            await deleteNode(nodePath, 'FOLDER');
         } else {
-            nodeId = await query(`SELECT cloudID
-                                  FROM files
-                                  WHERE path = "${nodePath}"`);
-            await query(`DELETE
-                         FROM files
-                         WHERE path = "${nodePath}"`);
+            nodeId = await getItemCloudID(nodePath, 'FILE');
+            await deleteNode(nodePath, 'FILE');
         }
 
-        if (nodeId.length === 0) {
+        if (!nodeId) {
             console.log("Can't find the node.")
             return;
         }
 
-        await deleteCloudFile(nodeId[0].cloudID);
-
+        await deleteCloudFile(nodeId);
         console.log(`The node was deleted: ${nodePath}`);
 
     };
 
-    processAddNode = async (node: INode): Promise<void> => {
+    startNodeTracking = async (node: INode): Promise<void> => {
         const isRegistered = await node.getRegisteredItem();
 
         if (!isRegistered) {
             node.cloudID = await node.uploadToDrive();
-            node.register();
+            await node.register();
         } else {
-            node.cloudID = isRegistered.cloudID;
+            node.cloudID = isRegistered;
 
             if (await node.isItemDirty()) {
                 console.log(`Item: ${node.name} is Dirty!`);

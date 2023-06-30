@@ -1,68 +1,77 @@
 import {INode} from "../nodes/ItemNodes";
-import query from "../../services/mysql";
 import fs from "fs";
 import path from "path";
-import {getRegisteredItem} from "../files/files.mysql";
-import {TableIdentifier} from "../../services/types";
 import {createDriveFolder} from "../googleDrive/googleDriveAPI";
+import Folder from "./Folder";
+import {getItemCloudID, getModifiedDate} from "../../db/sequelize";
 
-
-export class FolderNode implements INode{
+export class FolderNode implements INode {
     name: string;
-    cloudID: string | undefined;
-    modifiedDate: string;
+    cloudID: string | null;
+    modifiedDateLocal: string;
     parentFolderPath: string;
 
-    constructor(public itemPath: string, private rootFolderID: string) {
-        const {name, parentFolderPath, modifiedDate} = this.getItemDetails();
+    constructor(public path: string, private rootFolderID: string) {
+        const {name, parentFolderPath, modifiedDateLocal} = this.getItemDetails();
         this.name = name;
         this.parentFolderPath = parentFolderPath;
-        this.modifiedDate = modifiedDate;
+        this.modifiedDateLocal = modifiedDateLocal;
+        this.cloudID = null;
     }
 
     async uploadToDrive(): Promise<string> {
-        const cloudID = await getRegisteredItem(this.parentFolderPath, TableIdentifier.FOLDERS);
+        console.log(this.parentFolderPath)
+        const dbResponse = await Folder.findOne({where: {path: this.parentFolderPath}, attributes:['cloudID']});
+        console.log(dbResponse)
+        const cloudID = dbResponse?.dataValues.cloudID;
+
         if (!cloudID) {
             return await createDriveFolder(this.name, this.rootFolderID)
         } else {
-            return await createDriveFolder(this.name, cloudID.cloudID!)
+            console.log(cloudID)
+            return await createDriveFolder(this.name, cloudID)
         }
     }
 
     async register(): Promise<void> {
-        await query(`INSERT INTO lindrive.folders (name, path, cloudID, modifiedDate) VALUE ("${this.name}", "${this.itemPath}", "${this.cloudID}", "${this.modifiedDate}")`)
+        const {name, path, cloudID, modifiedDateLocal, parentFolderPath} = this;
+
+        if(!cloudID){
+            throw new Error("Item not found in database");
+        }
+
+        await Folder.create({name, path, cloudID, modifiedDateLocal, parentFolderPath});
     }
 
-    getItemDetails(): { name: string; parentFolderPath: string; modifiedDate: string } {
-        const stat = fs.statSync(this.itemPath);
+    getItemDetails(): { name: string; parentFolderPath: string; modifiedDateLocal: string } {
+        const stat = fs.statSync(this.path);
 
         return {
-            name: path.basename(this.itemPath),
-            parentFolderPath: path.dirname(this.itemPath),
-            modifiedDate: new Date(stat.mtime).toISOString().slice(0, 19)
+            name: path.basename(this.path),
+            parentFolderPath: path.dirname(this.path),
+            modifiedDateLocal: new Date(stat.mtime).toISOString().slice(0, 19),
         };
     }
 
-
-    async getRegisteredItem(): Promise<{ cloudID: string | undefined }> {
-        return await getRegisteredItem(this.itemPath, TableIdentifier.FOLDERS);
+    async getRegisteredItem(): Promise<string | null> {
+        return getItemCloudID(this.path, 'FOLDER');
     }
 
-
     async isItemDirty(): Promise<boolean> {
-        const [results] = await query(`SELECT modifiedDate
-                                       from folders
-                                       WHERE path = "${this.itemPath}"`);
-        const dbModifiedDate = new Date(results.modifiedDate).toISOString().slice(0, 19);
-        const localModifiedDate = new Date(this.modifiedDate).toISOString().slice(0, 19);
+        const results = await getModifiedDate(this.path, 'FOLDER')
+
+        if(!results){
+            throw new Error("Item not found in database");
+        }
+
+        const dbModifiedDate = new Date(results).toISOString().slice(0, 19);
+        const localModifiedDate = new Date(this.modifiedDateLocal).toISOString().slice(0, 19);
 
         return localModifiedDate > dbModifiedDate;
     }
 
     async updateItem(): Promise<void> {
-        return await query(`UPDATE folders
-                            SET modifiedDate = "${new Date().toISOString().slice(0,19)}"
-                            WHERE path = "${this.itemPath}"`);
+        await Folder.update({modifiedDateLocal: new Date().toISOString().slice(0, 19)}, {where: {path: this.path}});
     }
 
 }
