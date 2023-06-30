@@ -14,9 +14,9 @@ export class FolderNode implements INode{
     parentFolderPath: string;
 
     constructor(public itemPath: string, private rootFolderID: string) {
-        const {name, parentFolderName, modifiedDate} = this.getItemDetails();
+        const {name, parentFolderPath, modifiedDate} = this.getItemDetails();
         this.name = name;
-        this.parentFolderPath = parentFolderName;
+        this.parentFolderPath = parentFolderPath;
         this.modifiedDate = modifiedDate;
     }
 
@@ -33,12 +33,12 @@ export class FolderNode implements INode{
         await query(`INSERT INTO lindrive.folders (name, path, cloudID, modifiedDate) VALUE ("${this.name}", "${this.itemPath}", "${this.cloudID}", "${this.modifiedDate}")`)
     }
 
-    getItemDetails(): { name: string; parentFolderName: string; modifiedDate: string } {
+    getItemDetails(): { name: string; parentFolderPath: string; modifiedDate: string } {
         const stat = fs.statSync(this.itemPath);
 
         return {
             name: path.basename(this.itemPath),
-            parentFolderName: path.dirname(this.itemPath),
+            parentFolderPath: path.dirname(this.itemPath),
             modifiedDate: new Date(stat.mtime).toISOString().slice(0, 19)
         };
     }

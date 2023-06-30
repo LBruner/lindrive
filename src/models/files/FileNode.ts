@@ -10,7 +10,7 @@ interface FileDetails {
     extension: string,
     modifiedDate: string,
     name: string,
-    parentFolderName: string,
+    parentFolderPath: string,
     size: number,
 }
 
@@ -23,11 +23,11 @@ export class FileNode implements INode {
     size: number;
 
     constructor(public itemPath: string) {
-        const {name, parentFolderName, modifiedDate, size, extension} = this.getItemDetails();
+        const {name, parentFolderPath, modifiedDate, size, extension} = this.getItemDetails();
         this.extension = extension;
         this.modifiedDate = modifiedDate;
         this.name = name;
-        this.parentFolderPath = parentFolderName;
+        this.parentFolderPath = parentFolderPath;
         this.size = size;
     }
 
@@ -38,7 +38,7 @@ export class FileNode implements INode {
 
         return {
             name: path.basename(this.itemPath),
-            parentFolderName: path.dirname(this.itemPath),
+            parentFolderPath: path.dirname(this.itemPath),
             modifiedDate: new Date(stat.mtime).toISOString().slice(0, 19),
             extension: path.extname(this.itemPath),
             size: stat.size,
@@ -51,7 +51,7 @@ export class FileNode implements INode {
 
     async register(): Promise<void> {
         await query(`INSERT INTO lindrive.files (name, extension, path, parentFolderPath, cloudID, lastModifiedLocal,
-                                                 lastModifiedCloud,
+                                                 modifiedDateCloud,
                                                  size) VALUE ("${this.name}", "${this.extension}", "${this.itemPath}",
                                                               "${this.parentFolderPath}", "${this.cloudID}",
                                                               "${this.modifiedDate}", "${this.modifiedDate}",

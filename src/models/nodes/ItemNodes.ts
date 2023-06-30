@@ -12,7 +12,7 @@ export interface INode {
 
     uploadToDrive(): Promise<string>;
 
-    getItemDetails(): { name: string; parentFolderName: string; modifiedDate: string };
+    getItemDetails(): { name: string; parentFolderPath: string; modifiedDate: string };
 
     getRegisteredItem(): Promise<{ cloudID: string | undefined }>;
 
