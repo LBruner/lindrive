@@ -1,21 +1,15 @@
-import mysql from 'mysql2';
+import sequelize from "../db/sequelize.config";
+import File from "../models/files/File";
+import Folder from "../models/folder/Folder";
 
-const util = require('util');
-
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE
-});
-
-connection.connect((err) => {
-    if (err) {
-        console.error('Error connecting to MySQL:', err);
-        throw err;
+export const setupDatabase = async () => {
+    try {
+        await sequelize.authenticate();
+        console.log('Connection has been established successfully.');
+        console.log(sequelize.models)
+        await File.sync();
+        await Folder.sync();
+    } catch (error) {
+        console.error('Unable to connect to the database:', error);
     }
-});
-
-const query = util.promisify(connection.query).bind(connection);
-
-export default query;
+};
