@@ -1,13 +1,14 @@
 import File from "../models/files/File";
 import Folder from "../models/folder/Folder";
+import UserData from "../models/user/UserData";
 
 export const setupDatabase = async () => {
     try {
+        await File.sync();
+        await Folder.sync();
+        await UserData.sync()
         console.log('Connection has been established successfully.');
-        // await File.sync();
-        // await Folder.sync();
-        // await File.sync({force: true});
-        // await Folder.sync({force: true});
+
     } catch (error) {
         console.error('Unable to connect to the database:', error);
     }
@@ -21,7 +22,7 @@ export const getAllNodesPath = async (nodeType: modelIdentifier): Promise<string
         dbResponse = await File.findAll({attributes: ['path']});
     }
 
-    if(!dbResponse){
+    if (!dbResponse) {
         console.log("No data found")
         return []
     }
@@ -79,3 +80,10 @@ export const deleteNode = async (path: string, nodeType: modelIdentifier): Promi
         await File.destroy({where: {parentFolderPath: path}})
     }
 };
+
+
+//TODO separate functions into Nodes and User folder
+
+export const getSetUser = async () => {
+    return await UserData.findOne();
+}
