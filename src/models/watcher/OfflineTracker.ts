@@ -3,7 +3,7 @@ import chokidar from "chokidar";
 import {FolderNode} from "../folder/FolderNode";
 import {FileNode} from "../files/FileNode";
 
-export class OfflineTracker{
+export class OfflineTracker {
     private readonly watcher: chokidar.FSWatcher;
 
     constructor(public path: string) {
@@ -12,22 +12,23 @@ export class OfflineTracker{
             awaitWriteFinish: {stabilityThreshold: 2000, pollInterval: 100}
         });
     }
-    async getInitialNodes(rootCloudID: string): Promise<INode[]> {
+
+    async getInitialNodes(): Promise<INode[]> {
         let descendingNodes: INode[];
 
-        descendingNodes = await this.getInitialFolders(rootCloudID);
+        descendingNodes = await this.getInitialFolders();
         descendingNodes.push(...await this.getInitialFiles());
 
         return descendingNodes;
     }
 
-    async getInitialFolders(rootCloudID: string) {
+    async getInitialFolders() {
         const temporaryWatcher = chokidar.watch(this.path);
         const initialNodes: INode[] = [];
 
         const promise: Promise<INode[]> = new Promise((resolve) => {
-            temporaryWatcher.on('addDir', (eventName: string) => {
-                const folderNode = new FolderNode(eventName, rootCloudID);
+            temporaryWatcher.on('addDir', async (eventName: string) => {
+                const folderNode = new FolderNode(eventName);
                 initialNodes.push(folderNode);
             }).on('ready', async () => {
                 resolve(initialNodes);

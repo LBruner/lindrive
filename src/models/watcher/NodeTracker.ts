@@ -16,7 +16,7 @@ export class NodeTracker {
     itemNodes: ItemNodes = new ItemNodes();
     watcher: ApiWatcher;
 
-    constructor(private path: string, private rootCloudId: string) {
+    constructor(private path: string) {
         this.watcher = new ApiWatcher(path, watcherConfig);
         this.watchDirectory();
     };
@@ -34,8 +34,9 @@ export class NodeTracker {
         await this.handleNodesEvents();
     }
 
+    //TODO Remove duplicated code
     private addFolderHandler = (nodePath: string) => {
-        const folderNode = new FolderNode(nodePath, this.rootCloudId);
+        const folderNode = new FolderNode(nodePath);
         this.itemNodes.addNode(folderNode);
     }
 
@@ -58,7 +59,7 @@ export class NodeTracker {
 
     handleInitialNodes = async () => {
         const offlineTrack = new OfflineTracker(this.path);
-        const initialNodes = await offlineTrack.getInitialNodes(this.rootCloudId);
+        const initialNodes = await offlineTrack.getInitialNodes();
         await this.itemNodes.addMultipleNodes(initialNodes);
 
         const deleteErasedNotes = async () => {
@@ -79,7 +80,7 @@ export class NodeTracker {
             }
         }
 
-    await deleteErasedNotes();
+        await deleteErasedNotes();
     }
 
 }

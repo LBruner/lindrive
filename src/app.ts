@@ -1,7 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import morgan from 'morgan';
-import {NodeTracker} from "./models/watcher/NodeTracker";
+
+import userRoutes from './routes/userRoutes';
+import driveRoutes from './routes/driveRoutes';
 
 const app = express();
 
@@ -9,30 +10,22 @@ app.use(cors({
     origin: 'http://localhost:8080',
 }));
 
-app.use(morgan('combined'))
-app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 
-// export const itemsLogger = winston.createLogger({
-//     level: 'info',
-//     format: winston.format.simple(),
-//     transports: [
-//         new winston.transports.File({filename: 'items.log'})
-//     ],
-// });
-//
-// export const driveLogger = winston.createLogger({
-//     level: 'info',
-//     format: winston.format.simple(),
-//     transports: [
-//         new winston.transports.File({filename: 'drive.log'})
-//     ],
-// });
+app.set('view engine', 'ejs');
 
 
-const watcher= new NodeTracker(process.env.CURSOS_DIRECTORY!, process.env.DOCUMENTS_FOLDER_KEY!)
+app.use('/auth/google', userRoutes);
+app.use('/drive', driveRoutes);
+
+app.get('/login', (req, res) => {
+    res.send('Failed to login!')
+})
 
 app.get('/*', (req, res) => {
     res.send("OI");
 })
+
+//TODO: add not found route
 
 export default app;

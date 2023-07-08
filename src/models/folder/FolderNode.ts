@@ -4,6 +4,7 @@ import path from "path";
 import {createDriveFolder} from "../googleDrive/googleDriveAPI";
 import Folder from "./Folder";
 import {getItemCloudID, getModifiedDate} from "../../db/sequelize";
+import UserData from "../user/UserData";
 
 export class FolderNode implements INode {
     name: string;
@@ -11,7 +12,7 @@ export class FolderNode implements INode {
     modifiedDateLocal: string;
     parentFolderPath: string;
 
-    constructor(public path: string, private rootFolderID: string) {
+    constructor(public path: string) {
         const {name, parentFolderPath, modifiedDateLocal} = this.getItemDetails();
         this.name = name;
         this.parentFolderPath = parentFolderPath;
@@ -21,12 +22,17 @@ export class FolderNode implements INode {
 
     async uploadToDrive(): Promise<string> {
         console.log(this.parentFolderPath)
-        const dbResponse = await Folder.findOne({where: {path: this.parentFolderPath}, attributes:['cloudID']});
-        console.log(dbResponse)
+        const dbResponse = await Folder.findOne({where: {path: this.parentFolderPath}, attributes: ['cloudID']});
         const cloudID = dbResponse?.dataValues.cloudID;
 
         if (!cloudID) {
-            return await createDriveFolder(this.name, this.rootFolderID)
+            const rootFolder = await UserData.findOne();
+
+            if (!rootFolder) {
+                throw new Error('Root user was not created!');
+            }
+
+            return await createDriveFolder(this.name, rootFolder.dataValues.rootFolderId!)
         } else {
             console.log(cloudID)
             return await createDriveFolder(this.name, cloudID)
@@ -36,7 +42,7 @@ export class FolderNode implements INode {
     async register(): Promise<void> {
         const {name, path, cloudID, modifiedDateLocal, parentFolderPath} = this;
 
-        if(!cloudID){
+        if (!cloudID) {
             throw new Error("Item not found in database");
         }
 
@@ -60,7 +66,7 @@ export class FolderNode implements INode {
     async isItemDirty(): Promise<boolean> {
         const results = await getModifiedDate(this.path, 'FOLDER')
 
-        if(!results){
+        if (!results) {
             throw new Error("Item not found in database");
         }
 
