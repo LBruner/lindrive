@@ -28,19 +28,22 @@ export const uploadFile = async (fileData: FileUploadData) => {
     }
 };
 
-export const createDriveFolder = async (folderName: string, parentFolder: string) => {
-    console.log(folderName, parentFolder)
-    const requestBody = {
+export const createDriveFolder = async (folderName: string, parentFolder: string | null) => {
+    let requestBody = {
         name: folderName,
         mimeType: 'application/vnd.google-apps.folder',
-        parents: [parentFolder]
     };
+
+    if (parentFolder) { // @ts-ignore
+        requestBody.parents = [parentFolder]
+    }
 
     try {
         const file = await drive.files.create({
             requestBody,
             fields: 'id',
         });
+        console.log(`Created folder: ${folderName}`)
         return file.data.id;
     } catch (e: any) {
         console.log(`Item could not be created! Error: ${e.message}`);
@@ -62,6 +65,19 @@ export const updateCloudFile = async (fileData: FileUpdateData) => {
     } catch (e) {
         console.log(`File: ${fileName} could not be updated.
         Error: ${e}`)
+    }
+}
+
+export const renameFolder = async (folderId: string, newName: string) => {
+    try {
+        const response = await drive.files.update({
+            fileId: folderId,
+            resource: {
+                name: newName
+            }
+        });
+    } catch (e) {
+        console.log(e)
     }
 }
 
