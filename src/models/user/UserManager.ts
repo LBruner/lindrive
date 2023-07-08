@@ -32,10 +32,11 @@ export class UserManager {
             await open('http://localhost:8080/auth/google');
         } else {
             console.log("logged in")
-            await this.setUserCredentials({
+            await oauth2Client.setCredentials({
                 access_token: userData.access_token,
                 refresh_token: userData.refresh_token
             });
+            new NodeTracker('/home/lbruner/Documents/Teste')
         }
     }
 
@@ -65,7 +66,7 @@ export class UserManager {
             })
         }
 
-        new NodeTracker('/home/lbruner/Documents/Cursos')
+        new NodeTracker('/home/lbruner/Documents/Teste')
     }
 
     isAuthenticated = async () => {
