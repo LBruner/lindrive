@@ -19,13 +19,16 @@
   },
   "homepage": "https://github.com/LBruner/lindrive#readme",
   "dependencies": {
+    "@types/node-persist": "^3.1.3",
     "cors": "^2.8.5",
+    "cryptr": "^6.2.0",
     "dotenv": "^16.0.3",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
     "googleapis": "^118.0.0",
     "mime-types": "^2.1.35",
     "mysql2": "^3.3.1",
+    "node-persist": "^3.1.3",
     "open": "8.1.0",
     "sequelize": "^6.32.1"
   },

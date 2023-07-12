@@ -4,17 +4,15 @@ import UserData from "./UserData";
 import open from 'open';
 import {NodeTracker} from "../watcher/NodeTracker";
 import {createDriveFolder} from "../googleDrive/googleDriveAPI";
-
-type userToken = {
-    access_token: string,
-    refresh_token: string
-}
+import {UserStorage} from './UserStorage';
 
 export class UserManager {
     private static instance: UserManager;
-    private tokens: userToken | undefined;
+    userStorage: UserStorage;
+    private trackingPaths: string[] = []
 
     private constructor() {
+        this.userStorage = new UserStorage()
         this.initUser();
     }
 
@@ -25,48 +23,62 @@ export class UserManager {
         return UserManager.instance;
     }
 
+    addTrackingPath = (trackingPath: string) => {
+        this.trackingPaths.push(trackingPath);
+    }
+
     private initUser = async () => {
         const userData = await getSetUser();
 
         if (!userData) {
             await open('http://localhost:8080/auth/google');
         } else {
-            console.log("logged in")
-            await oauth2Client.setCredentials({
-                access_token: userData.access_token,
-                refresh_token: userData.refresh_token
-            });
-            new NodeTracker('/home/lbruner/Documents/Teste')
+            const {access_token, refresh_token} = userData
+
+            const decryptedTokens = await this.userStorage.decryptStoredTokens({access_token, refresh_token});
+
+            try{
+                await oauth2Client.setCredentials({
+                    access_token: decryptedTokens.access_token,
+                    refresh_token: decryptedTokens.refresh_token
+                });
+            }
+            catch (e) {
+                await open('http://localhost:8080/auth/google');
+                console.log('error',e);
+                return;
+            }
+
+            for (const path of this.trackingPaths) {
+                new NodeTracker(path)
+            }
         }
     }
 
     setUserCredentials = async (authCode: any) => {
         const {tokens} = await oauth2Client.getToken(authCode);
 
-        //TODO hash tokens
+        const encryptedTokens = await this.userStorage.storeTokens(tokens);
 
-        this.tokens = {
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token
-        };
-
-        await oauth2Client.setCredentials(this.tokens);
+        await oauth2Client.setCredentials(tokens);
 
         const isUserSet = await getSetUser();
 
         if (!isUserSet) {
             const folderId = await createDriveFolder('Lindrive', null);
-            console.log("OI",folderId)
 
             await UserData.create({
-                access_token: tokens.access_token,
-                refresh_token: tokens.refresh_token,
+                access_token: encryptedTokens.access_token,
+                refresh_token: encryptedTokens.refresh_token,
                 rootFolderName: 'Lindrive',
                 rootFolderId: folderId
             })
         }
 
-        new NodeTracker('/home/lbruner/Documents/Teste')
+        for (const path of this.trackingPaths) {
+            console.log(path)
+            new NodeTracker(path)
+        }
     }
 
     isAuthenticated = async () => {
