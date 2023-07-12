@@ -19,16 +19,12 @@ class UserData extends Model<UserAttributes> implements UserAttributes {
 
 UserData.init({
     access_token: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: false,
     },
     refresh_token: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: false,
-    },
-    randomSecret: {
-        type: DataTypes.STRING,
-        allowNull: true,
     },
     rootFolderId: {
         type: DataTypes.STRING,
