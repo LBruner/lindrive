@@ -23,7 +23,9 @@ export class OfflineTracker {
     }
 
     async getInitialFolders() {
-        const temporaryWatcher = chokidar.watch(this.path);
+        const temporaryWatcher = chokidar.watch(this.path, {
+            ignored: /(^|\/)\.[^\/.]/g
+        });
         const initialNodes: INode[] = [];
 
         const promise: Promise<INode[]> = new Promise((resolve) => {
@@ -38,7 +40,10 @@ export class OfflineTracker {
     }
 
     async getInitialFiles() {
-        const temporaryWatcher = chokidar.watch(this.path);
+        //TODO ask if want to ignore hidden folders
+        const temporaryWatcher = chokidar.watch(this.path, {
+            ignored: /(^|\/)\.[^\/.]/g
+        });
         const initialNodes: INode[] = [];
 
         const promise: Promise<INode[]> = new Promise((resolve) => {
