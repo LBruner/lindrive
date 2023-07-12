@@ -4,11 +4,12 @@ import {FileNode} from "../files/FileNode";
 import {FolderNode} from "../folder/FolderNode";
 import {OfflineTracker} from "./OfflineTracker";
 import {getAllNodesPath} from "../../db/sequelize";
+import fs from "fs";
 
 const watcherConfig = {
     awaitWriteFinish: {stabilityThreshold: 2000, pollInterval: 100},
     persistent: true,
-    ignored: /(^|[\/\\])\../,
+    ignored: /(^|[/\\])\..obsidian/,
     ignoreInitial: true
 }
 
@@ -17,9 +18,23 @@ export class NodeTracker {
     watcher: ApiWatcher;
 
     constructor(private path: string) {
-        this.watcher = new ApiWatcher(path, watcherConfig);
-        this.watchDirectory();
+        const pathIsValid = this.isFolderPathValid(path);
+        if (pathIsValid) {
+            this.watcher = new ApiWatcher(path, watcherConfig);
+            this.watchDirectory();
+        } else {
+            throw new Error(`Path: ${path} is invalid!`);
+        }
     };
+
+    isFolderPathValid(folderPath: string) {
+        try {
+            const stats = fs.statSync(folderPath);
+            return stats.isDirectory();
+        } catch (error) {
+            return false;
+        }
+    }
 
     handleNodesEvents = async () => {
         await this.handleInitialNodes();
