@@ -19,6 +19,6 @@ export const setupRootFolder: RequestHandler = async (req, res) => {
 }
 
 export const renderHome: RequestHandler = (req, res) => {
-    res.render('driveHome');
+    res.redirect('http://localhost:3000/home')
 }
 

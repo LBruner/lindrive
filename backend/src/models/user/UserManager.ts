@@ -31,7 +31,7 @@ export class UserManager {
         const userData = await getSetUser();
 
         if (!userData) {
-            await open('http://localhost:8080/auth/google');
+            await open('http://localhost:3000/home');
         } else {
             const {access_token, refresh_token} = userData
 
@@ -42,18 +42,31 @@ export class UserManager {
                     access_token: decryptedTokens.access_token,
                     refresh_token: decryptedTokens.refresh_token
                 });
+
+
+                if(this.isTokenExpired()){
+                    console.log(`Token is expired.`)
+                    await oauth2Client.refreshAccessToken()
+                }
             }
             catch (e) {
-                await open('http://localhost:8080/auth/google');
+                await open('http://localhost:3000/home');
                 console.log('error',e);
                 return;
             }
 
             for (const path of this.trackingPaths) {
-                new NodeTracker(path)
+                // new NodeTracker(path)
             }
         }
     }
+
+    isTokenExpired = () => {
+        const tokenExpiration = oauth2Client.credentials.expiry_date;
+        const currentTime = Date.now();
+
+        return tokenExpiration < currentTime;
+    };
 
     setUserCredentials = async (authCode: any) => {
         const {tokens} = await oauth2Client.getToken(authCode);

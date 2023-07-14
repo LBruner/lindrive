@@ -6,8 +6,10 @@ export const authenticateCallback: RequestHandler = async (req, res) => {
     const code = req.query.code;
 
     try {
-        await UserManager.getInstance().setUserCredentials(code);
-        res.render('initialSettings')
+        const userInstance = await UserManager.getInstance();
+        await userInstance.setUserCredentials(code);
+        res.cookie('isAuthenticated', 'true')
+        res.redirect('http://localhost:3000/drive/settings')
     } catch (error) {
         console.error('Erro ao obter o token de acesso:', error);
         res.redirect('/login');
@@ -15,5 +17,5 @@ export const authenticateCallback: RequestHandler = async (req, res) => {
 }
 
 export const redirectGoogleLogin: RequestHandler = async (req, res) => {
-    res.redirect(authUrl);
+    res.json({authUrl: authUrl});
 }
