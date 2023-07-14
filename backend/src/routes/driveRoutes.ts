@@ -5,6 +5,6 @@ import {isUserAuthenticated} from "../middlewares/userMiddlewares";
 const router = express.Router();
 
 router
-    .get('/home', isUserAuthenticated,renderHome)
-    .post('/', isUserAuthenticated, setupRootFolder)
+    .get('/home', isUserAuthenticated, renderHome)
+    .post('/settings', isUserAuthenticated, setupRootFolder)
 export default router;
