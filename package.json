@@ -1,5 +1,5 @@
 {
-  "name": "Lindrive",
+  "name": "lindrive",
   "author": "LBruner",
   "version": "0.0.1",
   "main": "./.webpack/main/index.js",
