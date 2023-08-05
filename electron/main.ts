@@ -1,8 +1,7 @@
-import {app, BrowserWindow, ipcMain} from 'electron'
+import {app, BrowserWindow, dialog, ipcMain, ipcRenderer} from 'electron'
 import {authUrl, oauth2Client} from "../models/googleDrive/googleAuth";
-import {StorageAPI} from "../models/storage/StorageAPI";
 import {UserManager} from "../models/user/UserManager";
-import path from "path";
+import {ServerEvents, ClientEvents} from '../events'
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
@@ -22,18 +21,18 @@ app.on('ready', async () => {
 
     await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-
     const devTools = new BrowserWindow();
     mainWindow.webContents.setDevToolsWebContents(devTools.webContents);
     mainWindow.webContents.openDevTools({mode: 'detach'});
 
     try {
         await userInstance.initUser();
-        mainWindow.send('user_returning_login');
-        console.log("OI")
+        console.log("User Returned!");
+        mainWindow.send(ClientEvents.startApp);
         return;
     } catch (e) {
-        ipcMain.on('auth-start', async () => {
+        mainWindow.send(ClientEvents.loadLoginPage)
+        ipcMain.on(ServerEvents.authStart, async () => {
             const authWindow = new BrowserWindow({useContentSize: true});
             const code = await getOAuthCodeByInteraction(authWindow, authUrl);
 
@@ -50,11 +49,36 @@ app.on('ready', async () => {
 
             userInstance.saveUserTokens({access_token, refresh_token})
 
-            mainWindow.send('user_first_login');
+            console.log("User Logged in!");
+            mainWindow.send(ClientEvents.initialSetup);
         });
     }
 
+    ipcMain.on(ServerEvents.setupStart, (_, args) => {
+        const {selectedFolders, rootFolderName} = args;
+
+        userInstance.setupUser(selectedFolders, rootFolderName);
+        console.log("OIOI")
+        mainWindow.send(ClientEvents.startApp);
+    })
+
 });
+
+ipcMain.on('openFolderDialog', (event) => {
+    dialog.showOpenDialog(mainWindow, {
+        properties: ['openDirectory', 'multiSelections', 'showHiddenFiles'],
+    }).then((result) => {
+        if (!result.canceled && result.filePaths.length > 0) {
+            const folderPaths = result.filePaths;
+            console.log(folderPaths)
+            event.reply('selectedFolders', folderPaths);
+        }
+    }).catch((err) => {
+        console.error(err);
+    });
+});
+
+
 
 const getOAuthCodeByInteraction = (interactionWindow: BrowserWindow, authPageURL: string): Promise<string | null> => {
     interactionWindow.loadURL(authPageURL);
