@@ -15,7 +15,7 @@ const AppSetup: React.FC = _ => {
         console.log("SUBMIT")
         window.Main.send(ServerEvents.setupStart, {
             selectedFolders: selectedFoldersPath,
-            rootFolderName: rootFolderName.current?.value || '',
+            rootFolderName: rootFolderName.current?.value || 'Lindrive',
             //TODO: Pick hidden files
         })
     }
@@ -36,7 +36,7 @@ const AppSetup: React.FC = _ => {
                     <label htmlFor={'savingFolders'}>Pick folders to track changes:</label>
                     <button onClick={onPickFolders}>Click</button>
                     <label htmlFor={'rootFolderName'}>Pick a name for the root folder:</label>
-                    <input id={'rootFolderName'} ref={rootFolderName} name={'rootFolderName'}/>
+                    <input placeholder={'Lindrive'} id={'rootFolderName'} ref={rootFolderName} name={'rootFolderName'}/>
                     <select>
                         <option>Save hidden files</option>
                         <option>Don't save hidden files</option>

@@ -4,7 +4,6 @@ import {Route, Routes, useNavigate} from "react-router-dom";
 import {ClientEvents} from "../events";
 import AppSetup from "./components/AppSetup";
 import UserLogin from "./components/UserLogin";
-import {useEffect} from "react";
 
 export function App() {
     const navigate = useNavigate();

@@ -2,51 +2,52 @@ import {INode} from "../nodes/ItemNodes";
 import fs from "fs";
 import path from "path";
 import {createDriveFolder} from "../googleDrive/googleDriveAPI";
-import Folder from "./Folder";
-import {getItemCloudID, getModifiedDate} from "../../db/sequelize";
-import UserData from "../user/UserData";
+import {getModifiedDate} from "../../db/sequelize";
+import {NodeStore, UserStore} from "../storage/stores";
+import {IFolder} from "../storage/stores/NodeStore";
 
 export class FolderNode implements INode {
     name: string;
-    cloudID: string | null;
-    modifiedDateLocal: string;
+    cloudId: string | null;
+    modifiedLocal: string;
     parentFolderPath: string;
+    nodeStore: NodeStore;
 
     constructor(public path: string) {
+        this.nodeStore = new NodeStore();
         const {name, parentFolderPath, modifiedDateLocal} = this.getItemDetails();
         this.name = name;
         this.parentFolderPath = parentFolderPath;
-        this.modifiedDateLocal = modifiedDateLocal;
-        this.cloudID = null;
+        this.modifiedLocal = modifiedDateLocal;
+        this.cloudId = null;
     }
 
-    async uploadToDrive(): Promise<string> {
-        console.log(this.parentFolderPath)
-        const dbResponse = await Folder.findOne({where: {path: this.parentFolderPath}, attributes: ['cloudID']});
-        const cloudID = dbResponse?.dataValues.cloudID;
+    async uploadToDrive(): Promise<string | null> {
+        const parentFolder = await this.nodeStore.getParentFolder(this.parentFolderPath);
 
-        if (!cloudID) {
-            const rootFolder = await UserData.findOne();
+        if (!parentFolder?.cloudId) {
+            const userStorage = new UserStore();
+            const rootFolder = await userStorage.getRootFolder();
 
             if (!rootFolder) {
                 throw new Error('Root user was not created!');
             }
 
-            return await createDriveFolder(this.name, rootFolder.dataValues.rootFolderId!)
+            return await createDriveFolder(this.name, rootFolder.id)
         } else {
-            console.log(cloudID)
-            return await createDriveFolder(this.name, cloudID)
+            console.log(parentFolder.path)
+            return await createDriveFolder(this.name, parentFolder.cloudId)
         }
     }
 
     async register(): Promise<void> {
-        const {name, path, cloudID, modifiedDateLocal, parentFolderPath} = this;
+        const {name, path, cloudId, modifiedLocal, parentFolderPath} = this;
 
-        if (!cloudID) {
+        if (!cloudId) {
             throw new Error("Item not found in database");
         }
 
-        await Folder.create({name, path, cloudID, modifiedDateLocal, parentFolderPath});
+        await this.nodeStore.createFolder({name, path, cloudId, parentFolderPath, modifiedLocal});
     }
 
     getItemDetails(): { name: string; parentFolderPath: string; modifiedDateLocal: string } {
@@ -59,25 +60,29 @@ export class FolderNode implements INode {
         };
     }
 
-    async getRegisteredItem(): Promise<string | null> {
-        return getItemCloudID(this.path, 'FOLDER');
+    async getRegisteredItemId(): Promise<string | undefined> {
+        return this.nodeStore.getFolderCloudId(this.path);
     }
 
     async isItemDirty(): Promise<boolean> {
-        const results = await getModifiedDate(this.path, 'FOLDER')
+        const results = await getModifiedDate(this.path, 'FOLDER');
 
-        if (!results) {
-            throw new Error("Item not found in database");
+        const storeModifiedDate = await this.nodeStore.getModifiedDate(this.path);
+
+        if (!storeModifiedDate) {
+            throw new Error("Item not found in database. isItemDirty error!");
         }
 
-        const dbModifiedDate = new Date(results).toISOString().slice(0, 19);
-        const localModifiedDate = new Date(this.modifiedDateLocal).toISOString().slice(0, 19);
+        const dbModifiedDate = new Date(storeModifiedDate).toISOString().slice(0, 19);
+        const localModifiedDate = new Date(this.modifiedLocal).toISOString().slice(0, 19);
 
         return localModifiedDate > dbModifiedDate;
     }
 
     async updateItem(): Promise<void> {
-        await Folder.update({modifiedDateLocal: new Date().toISOString().slice(0, 19)}, {where: {path: this.path}});
+        const {name, path, modifiedLocal, parentFolderPath, cloudId} = this;
+        const updatingFolder: IFolder = {name, path, cloudId, parentFolderPath, modifiedLocal}
+        await this.nodeStore.updateFolder(updatingFolder);
     }
 
 }

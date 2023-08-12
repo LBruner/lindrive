@@ -28,7 +28,7 @@ export const uploadFile = async (fileData: FileUploadData) => {
     }
 };
 
-export const createDriveFolder = async (folderName: string, parentFolder: string | null) => {
+export const createDriveFolder = async (folderName: string, parentFolder: string | null): Promise<string | null> => {
     let requestBody = {
         name: folderName,
         mimeType: 'application/vnd.google-apps.folder',
@@ -47,6 +47,7 @@ export const createDriveFolder = async (folderName: string, parentFolder: string
         return file.data.id;
     } catch (e: any) {
         console.log(`Item could not be created! Error: ${e.message}`);
+        return null;
     }
 };
 

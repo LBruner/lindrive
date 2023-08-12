@@ -1,8 +1,9 @@
 import React from "react";
+import {ServerEvents} from "../../events";
 
 const UserLogin: React.FC = _ => {
     const onStartLoginHandler = () => {
-        window.Main.send('auth-start');
+        window.Main.send(ServerEvents.authStart);
     }
 
     return (

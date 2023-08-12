@@ -14,9 +14,9 @@ interface FileDetails {
 }
 
 export class FileNode implements INode {
-    cloudID: string | null;
+    cloudId: string | null;
     extension: string;
-    modifiedDateLocal: string;
+    modifiedLocal: string;
     name: string;
     parentFolderPath: string;
     size: number;
@@ -24,11 +24,11 @@ export class FileNode implements INode {
     constructor(public path: string) {
         const {name, parentFolderPath, modifiedDateLocal, size, extension} = this.getItemDetails();
         this.extension = extension;
-        this.modifiedDateLocal = modifiedDateLocal;
+        this.modifiedLocal = modifiedDateLocal;
         this.name = name;
         this.parentFolderPath = parentFolderPath;
         this.size = size;
-        this.cloudID = null;
+        this.cloudId = null;
     }
 
 
@@ -44,15 +44,15 @@ export class FileNode implements INode {
         };
     }
 
-    async getRegisteredItem(): Promise<string | null> {
+    async getRegisteredItemId(): Promise<string | null> {
         return getItemCloudID(this.path, 'FILE');
     }
 
     async register(): Promise<void> {
 
-        const {name, extension, path, parentFolderPath, modifiedDateLocal, size, cloudID} = this;
+        const {name, extension, path, parentFolderPath, modifiedLocal, size, cloudId} = this;
 
-        if (!cloudID) {
+        if (!cloudId) {
             throw new Error('CloudID is null.')
         }
 
@@ -61,10 +61,10 @@ export class FileNode implements INode {
             extension,
             path,
             parentFolderPath,
-            modifiedDateLocal,
+            modifiedLocal: modifiedDateLocal,
             size,
-            cloudID,
-            modifiedDateCloud: modifiedDateLocal,
+            cloudId: cloudID,
+            modifiedDateCloud: modifiedLocal,
         })
     }
 
@@ -79,13 +79,13 @@ export class FileNode implements INode {
     }
 
     async updateItem(): Promise<void> {
-        const {name: fileName, extension: fileExtension, cloudID, path: filePath,} = this;
+        const {name: fileName, extension: fileExtension, cloudId, path: filePath,} = this;
 
-        if (!cloudID) {
+        if (!cloudId) {
             throw new Error('CloudID is null.')
         }
 
-        await updateCloudFile({fileExtension, fileName, fileID: cloudID, filePath});
+        await updateCloudFile({fileExtension, fileName, fileID: cloudId, filePath});
         await updateModifiedDate(filePath, "FILE");
     }
 
@@ -97,7 +97,7 @@ export class FileNode implements INode {
         }
 
         const dbModifiedDate = new Date(results).toISOString().slice(0, 19);
-        const localModifiedDate = new Date(this.modifiedDateLocal).toISOString().slice(0, 19);
+        const localModifiedDate = new Date(this.modifiedLocal).toISOString().slice(0, 19);
 
         return localModifiedDate > dbModifiedDate
     }

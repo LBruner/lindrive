@@ -1,7 +1,7 @@
-import {app, BrowserWindow, dialog, ipcMain, ipcRenderer} from 'electron'
+import {app, BrowserWindow, dialog, ipcMain} from 'electron'
 import {authUrl, oauth2Client} from "../models/googleDrive/googleAuth";
 import {UserManager} from "../models/user/UserManager";
-import {ServerEvents, ClientEvents} from '../events'
+import {ClientEvents, ServerEvents} from '../events'
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
@@ -9,6 +9,9 @@ let mainWindow: BrowserWindow;
 const userInstance = UserManager.getInstance();
 
 app.on('ready', async () => {
+    // // await userInstance.setupUser(['/home/lbruner/Documents/Teste'], 'oi');
+    // await userInstance.initUser();
+
     mainWindow = new BrowserWindow({
         title: 'Lindrive',
         webPreferences: {
@@ -31,7 +34,8 @@ app.on('ready', async () => {
         mainWindow.send(ClientEvents.startApp);
         return;
     } catch (e) {
-        mainWindow.send(ClientEvents.loadLoginPage)
+        mainWindow.send(ClientEvents.loadLoginPage);
+        console.log('User first start')
         ipcMain.on(ServerEvents.authStart, async () => {
             const authWindow = new BrowserWindow({useContentSize: true});
             const code = await getOAuthCodeByInteraction(authWindow, authUrl);
@@ -54,11 +58,11 @@ app.on('ready', async () => {
         });
     }
 
-    ipcMain.on(ServerEvents.setupStart, (_, args) => {
+    ipcMain.on(ServerEvents.setupStart, async (_, args) => {
         const {selectedFolders, rootFolderName} = args;
 
-        userInstance.setupUser(selectedFolders, rootFolderName);
-        console.log("OIOI")
+        await userInstance.setupUser(selectedFolders, rootFolderName);
+        await userInstance.initUser();
         mainWindow.send(ClientEvents.startApp);
     })
 
@@ -77,7 +81,6 @@ ipcMain.on('openFolderDialog', (event) => {
         console.error(err);
     });
 });
-
 
 
 const getOAuthCodeByInteraction = (interactionWindow: BrowserWindow, authPageURL: string): Promise<string | null> => {

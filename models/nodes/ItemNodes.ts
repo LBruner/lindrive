@@ -1,20 +1,22 @@
 import {deleteCloudFile} from "../googleDrive/googleDriveAPI";
 import {deleteNode, getItemCloudID} from "../../db/sequelize";
+import {Logger} from "sequelize/types/utils/logger";
+import {NodeStore} from "../storage/stores";
 
 export interface INode {
     name: string;
-    cloudID: string | null;
+    cloudId: string | null;
     path: string
-    modifiedDateLocal: string;
+    modifiedLocal: string;
     parentFolderPath: string;
 
     register(): void;
 
-    uploadToDrive(): Promise<string>;
+    uploadToDrive(): Promise<string | null>;
 
     getItemDetails(): { name: string; parentFolderPath: string; modifiedDateLocal: string };
 
-    getRegisteredItem(): Promise<string | null>;
+    getRegisteredItemId(): Promise<string | undefined>;
 
     isItemDirty(): Promise<boolean>;
 
@@ -30,6 +32,7 @@ export class ItemNodes {
     }
 
     addMultipleNodes = async (nodes: INode[]) => {
+        console.log("ALL NODES",)
         this.allNodes.push(...nodes);
         for (const node of nodes) {
             await this.startNodeTracking(node);
@@ -55,38 +58,42 @@ export class ItemNodes {
 
     deleteNode = async (nodePath: string, nodeType: 'FOLDER' | 'FILE'): Promise<void> => {
         const deletingNode = await this.getNode(nodePath);
-        let nodeId;
+
+        if (!deletingNode) {
+            console.log(`Can't find the node ${nodePath}`);
+            return;
+        }
 
         if (deletingNode) {
             this.allNodes = this.allNodes.filter((node) => node.path !== nodePath);
         }
 
         if (nodeType == 'FOLDER') {
-            nodeId = await getItemCloudID(nodePath, 'FOLDER');
-            await deleteNode(nodePath, 'FOLDER');
-        } else {
-            nodeId = await getItemCloudID(nodePath, 'FILE');
-            await deleteNode(nodePath, 'FILE');
-        }
+            //TODO CREATE SINGLETON CLASS
+            const nodeStore = new NodeStore();
 
-        if (!nodeId) {
-            console.log("Can't find the node.")
-            return;
+            const nodeFolder = await nodeStore.getFolder(nodePath);
+            await nodeStore.deleteFolder(nodeFolder?.path!);
         }
+        // else {
+        //     nodeId = await getItemCloudID(nodePath, 'FILE');
+        //     await deleteNode(nodePath, 'FILE');
+        // }
 
-        await deleteCloudFile(nodeId);
+        await deleteCloudFile(deletingNode?.cloudId!);
         console.log(`The node was deleted: ${nodePath}`);
-
     };
 
     startNodeTracking = async (node: INode): Promise<void> => {
-        const isRegistered = await node.getRegisteredItem();
+        const getRegisteredId = await node.getRegisteredItemId();
 
-        if (!isRegistered) {
-            node.cloudID = await node.uploadToDrive();
+        console.log(`PATH: ${node.path} registered: ${getRegisteredId}`)
+
+        if (!getRegisteredId) {
+            node.cloudId = await node.uploadToDrive();
             await node.register();
         } else {
-            node.cloudID = isRegistered;
+            node.cloudId = getRegisteredId;
 
             if (await node.isItemDirty()) {
                 console.log(`Item: ${node.name} is Dirty!`);

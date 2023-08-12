@@ -42,7 +42,7 @@ export const getItemCloudID = async (path: string, nodeType: modelIdentifier): P
         dbResponse = await File.findOne({where: {path}, attributes: ['cloudID']});
     }
 
-    return dbResponse?.dataValues.cloudID || null;
+    return dbResponse?.dataValues.cloudId || null;
 };
 
 export const getModifiedDate = async (path: string, nodeType: modelIdentifier): Promise<string | null> => {
@@ -61,7 +61,7 @@ export const getModifiedDate = async (path: string, nodeType: modelIdentifier): 
         });
     }
 
-    return dbResults?.dataValues.modifiedDateLocal || null
+    return dbResults?.dataValues.modifiedLocal || null
 }
 
 export const updateModifiedDate = async (path: string, nodeType: modelIdentifier) => {
