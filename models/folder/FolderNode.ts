@@ -8,20 +8,22 @@ import {Folder} from "../storage/stores/nodes/types";
 export class FolderNode implements INode {
     name: string;
     cloudId: string | null;
-    modifiedLocal: string;
+    modified: string;
     parentFolderPath: string;
 
     constructor(public path: string, private folderStore: FolderStore) {
         const {name, parentFolderPath, modifiedDateLocal} = this.getItemDetails();
         this.name = name;
         this.parentFolderPath = parentFolderPath;
-        this.modifiedLocal = modifiedDateLocal;
+        this.modified = modifiedDateLocal;
         this.cloudId = null;
     }
 
     async uploadToDrive(): Promise<string | null> {
         const parentFolder = this.folderStore.getParentFolder(this.parentFolderPath);
 
+
+        console.log("PARENT FOLDER", parentFolder)
         if (!parentFolder?.cloudId) {
             const userStore = new UserStore();
             const rootFolder = userStore.getRootFolder();
@@ -38,13 +40,13 @@ export class FolderNode implements INode {
     }
 
     async register(): Promise<void> {
-        const {name, path, cloudId, modifiedLocal, parentFolderPath} = this;
+        const {name, path, cloudId, modified, parentFolderPath} = this;
 
         if (!cloudId) {
             throw new Error("Item not found in database");
         }
 
-        this.folderStore.createOne({name, path, cloudId, parentFolderPath, modifiedLocal});
+        this.folderStore.createOne({name, path, cloudId, parentFolderPath, modified});
     }
 
     getItemDetails(): { name: string; parentFolderPath: string; modifiedDateLocal: string } {
@@ -58,7 +60,7 @@ export class FolderNode implements INode {
     }
 
     async getRegisteredItemId(): Promise<string | undefined> {
-        return this.folderStore.getFolderCloudId(this.path);
+        return this.folderStore.getCloudId(this.path);
     }
 
     async isItemDirty(): Promise<boolean> {
@@ -69,14 +71,14 @@ export class FolderNode implements INode {
         }
 
         const dbModifiedDate = new Date(storeModifiedDate).toISOString().slice(0, 19);
-        const localModifiedDate = new Date(this.modifiedLocal).toISOString().slice(0, 19);
+        const localModifiedDate = new Date(this.modified).toISOString().slice(0, 19);
 
         return localModifiedDate > dbModifiedDate;
     }
 
     async updateItem(): Promise<void> {
-        const {name, path, modifiedLocal, parentFolderPath, cloudId} = this;
-        const updatingFolder: Folder = {name, path, cloudId, parentFolderPath, modifiedLocal}
+        const {name, path, modified, parentFolderPath, cloudId} = this;
+        const updatingFolder: Folder = {name, path, cloudId, parentFolderPath, modified}
         this.folderStore.updateOne(updatingFolder);
     }
 
