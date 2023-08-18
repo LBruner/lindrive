@@ -2,19 +2,16 @@ import {INode} from "../nodes/ItemNodes";
 import fs from "fs";
 import path from "path";
 import {createDriveFolder} from "../googleDrive/googleDriveAPI";
-import {getModifiedDate} from "../../db/sequelize";
-import {NodeStore, UserStore} from "../storage/stores";
-import {IFolder} from "../storage/stores/NodeStore";
+import {FolderStore, UserStore} from "../storage/stores";
+import {Folder} from "../storage/stores/nodes/types";
 
 export class FolderNode implements INode {
     name: string;
     cloudId: string | null;
     modifiedLocal: string;
     parentFolderPath: string;
-    nodeStore: NodeStore;
 
-    constructor(public path: string) {
-        this.nodeStore = new NodeStore();
+    constructor(public path: string, private folderStore: FolderStore) {
         const {name, parentFolderPath, modifiedDateLocal} = this.getItemDetails();
         this.name = name;
         this.parentFolderPath = parentFolderPath;
@@ -23,11 +20,11 @@ export class FolderNode implements INode {
     }
 
     async uploadToDrive(): Promise<string | null> {
-        const parentFolder = await this.nodeStore.getParentFolder(this.parentFolderPath);
+        const parentFolder = this.folderStore.getParentFolder(this.parentFolderPath);
 
         if (!parentFolder?.cloudId) {
-            const userStorage = new UserStore();
-            const rootFolder = await userStorage.getRootFolder();
+            const userStore = new UserStore();
+            const rootFolder = userStore.getRootFolder();
 
             if (!rootFolder) {
                 throw new Error('Root user was not created!');
@@ -47,7 +44,7 @@ export class FolderNode implements INode {
             throw new Error("Item not found in database");
         }
 
-        await this.nodeStore.createFolder({name, path, cloudId, parentFolderPath, modifiedLocal});
+        this.folderStore.createOne({name, path, cloudId, parentFolderPath, modifiedLocal});
     }
 
     getItemDetails(): { name: string; parentFolderPath: string; modifiedDateLocal: string } {
@@ -61,13 +58,11 @@ export class FolderNode implements INode {
     }
 
     async getRegisteredItemId(): Promise<string | undefined> {
-        return this.nodeStore.getFolderCloudId(this.path);
+        return this.folderStore.getFolderCloudId(this.path);
     }
 
     async isItemDirty(): Promise<boolean> {
-        const results = await getModifiedDate(this.path, 'FOLDER');
-
-        const storeModifiedDate = await this.nodeStore.getModifiedDate(this.path);
+        const storeModifiedDate = this.folderStore.getModifiedDate(this.path);
 
         if (!storeModifiedDate) {
             throw new Error("Item not found in database. isItemDirty error!");
@@ -81,8 +76,8 @@ export class FolderNode implements INode {
 
     async updateItem(): Promise<void> {
         const {name, path, modifiedLocal, parentFolderPath, cloudId} = this;
-        const updatingFolder: IFolder = {name, path, cloudId, parentFolderPath, modifiedLocal}
-        await this.nodeStore.updateFolder(updatingFolder);
+        const updatingFolder: Folder = {name, path, cloudId, parentFolderPath, modifiedLocal}
+        this.folderStore.updateOne(updatingFolder);
     }
 
 }

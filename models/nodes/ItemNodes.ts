@@ -1,7 +1,7 @@
 import {deleteCloudFile} from "../googleDrive/googleDriveAPI";
-import {deleteNode, getItemCloudID} from "../../db/sequelize";
-import {Logger} from "sequelize/types/utils/logger";
-import {NodeStore} from "../storage/stores";
+import {NodeStore} from "../storage/stores/nodes/NodeStore";
+import {FileStore, FolderStore} from "../storage/stores";
+import folderStore from "../storage/stores/nodes/FolderStore";
 
 export interface INode {
     name: string;
@@ -26,13 +26,15 @@ export interface INode {
 export class ItemNodes {
     private allNodes: INode[] = [];
 
+    constructor(private fileStore: FileStore, private folderStore: FolderStore) {
+    }
+
     addNode = async (node: INode): Promise<void> => {
         this.allNodes.push(node);
         await this.startNodeTracking(node);
     }
 
     addMultipleNodes = async (nodes: INode[]) => {
-        console.log("ALL NODES",)
         this.allNodes.push(...nodes);
         for (const node of nodes) {
             await this.startNodeTracking(node);
@@ -56,25 +58,29 @@ export class ItemNodes {
         console.log(`Item: ${node.name} was updated`);
     }
 
+    //TODO Tudo funcionando porém pastas nestadas não sao deletadas ao apagar a pasta pai!
+
     deleteNode = async (nodePath: string, nodeType: 'FOLDER' | 'FILE'): Promise<void> => {
-        const deletingNode = await this.getNode(nodePath);
+        const deletingNode = this.folderStore.findOne(nodePath);
 
         if (!deletingNode) {
-            console.log(`Can't find the node ${nodePath}`);
-            return;
-        }
-
-        if (deletingNode) {
             this.allNodes = this.allNodes.filter((node) => node.path !== nodePath);
         }
 
         if (nodeType == 'FOLDER') {
-            //TODO CREATE SINGLETON CLASS
-            const nodeStore = new NodeStore();
+            await this.folderStore.deleteOne(nodePath);
 
-            const nodeFolder = await nodeStore.getFolder(nodePath);
-            await nodeStore.deleteFolder(nodeFolder?.path!);
+
         }
+        else if (nodeType === 'FILE') {
+            await this.fileStore.deleteOne(nodePath);
+        }
+
+        // const nodeStore = new NodeStore();
+        //
+        // const nodeFolder = await nodeStore.getFolder(nodePath);
+        // await nodeStore.deleteFolder(nodeFolder?.path!);
+
         // else {
         //     nodeId = await getItemCloudID(nodePath, 'FILE');
         //     await deleteNode(nodePath, 'FILE');
@@ -91,7 +97,7 @@ export class ItemNodes {
 
         if (!getRegisteredId) {
             node.cloudId = await node.uploadToDrive();
-            await node.register();
+            node.register();
         } else {
             node.cloudId = getRegisteredId;
 
