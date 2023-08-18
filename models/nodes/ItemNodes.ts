@@ -1,13 +1,11 @@
 import {deleteCloudFile} from "../googleDrive/googleDriveAPI";
-import {NodeStore} from "../storage/stores/nodes/NodeStore";
 import {FileStore, FolderStore} from "../storage/stores";
-import folderStore from "../storage/stores/nodes/FolderStore";
 
 export interface INode {
     name: string;
     cloudId: string | null;
     path: string
-    modifiedLocal: string;
+    modified: string;
     parentFolderPath: string;
 
     register(): void;
@@ -58,33 +56,23 @@ export class ItemNodes {
         console.log(`Item: ${node.name} was updated`);
     }
 
-    //TODO Tudo funcionando porém pastas nestadas não sao deletadas ao apagar a pasta pai!
-
     deleteNode = async (nodePath: string, nodeType: 'FOLDER' | 'FILE'): Promise<void> => {
-        const deletingNode = this.folderStore.findOne(nodePath);
+        let deletingNode;
+
+        if (nodeType == 'FOLDER') {
+            deletingNode =  this.folderStore.findOne(nodePath);
+            //TODO: DELETE all files inside a deleted folder;
+            await this.folderStore.deleteOne(nodePath);
+        }
+
+        else if (nodeType === 'FILE') {
+            deletingNode =  this.fileStore.findOne(nodePath);
+            await this.fileStore.deleteOne(nodePath);
+        }
 
         if (!deletingNode) {
             this.allNodes = this.allNodes.filter((node) => node.path !== nodePath);
         }
-
-        if (nodeType == 'FOLDER') {
-            await this.folderStore.deleteOne(nodePath);
-
-
-        }
-        else if (nodeType === 'FILE') {
-            await this.fileStore.deleteOne(nodePath);
-        }
-
-        // const nodeStore = new NodeStore();
-        //
-        // const nodeFolder = await nodeStore.getFolder(nodePath);
-        // await nodeStore.deleteFolder(nodeFolder?.path!);
-
-        // else {
-        //     nodeId = await getItemCloudID(nodePath, 'FILE');
-        //     await deleteNode(nodePath, 'FILE');
-        // }
 
         await deleteCloudFile(deletingNode?.cloudId!);
         console.log(`The node was deleted: ${nodePath}`);
@@ -98,7 +86,8 @@ export class ItemNodes {
         if (!getRegisteredId) {
             node.cloudId = await node.uploadToDrive();
             node.register();
-        } else {
+        }
+        else {
             node.cloudId = getRegisteredId;
 
             if (await node.isItemDirty()) {
