@@ -28,6 +28,7 @@ app.on('ready', async () => {
     mainWindow.webContents.setDevToolsWebContents(devTools.webContents);
     mainWindow.webContents.openDevTools({mode: 'detach'});
 
+
     try {
         await userInstance.initUser();
         console.log("User Returned!");
@@ -41,7 +42,7 @@ app.on('ready', async () => {
             const code = await getOAuthCodeByInteraction(authWindow, authUrl);
 
             if (!code) {
-                throw new Error('No authentication Code was provided.')
+                throw new Error('No authentication code was provided.')
             }
 
             const tokensResponse = (await oauth2Client.getToken(code)).tokens;

@@ -1,27 +1,16 @@
-// import {getSetUser, setupDatabase} from "../../db/sequelize";
 import {oauth2Client} from "../googleDrive/googleAuth"
 import UserData from "./UserData";
-import open from 'open';
-// import {NodeTracker} from "../watcher/NodeTracker";
 import {createDriveFolder} from "../googleDrive/googleDriveAPI";
-import {UserStorage} from './UserStorage';
-import {ipcMain} from "electron";
 import {UserTokens} from "./UserTokens";
 import {NodesManager} from "../nodes/NodesManager";
-import {NodeStorage} from "../storage/NodeStorage";
-import {NodeStore, UserStore} from "../storage/stores";
-import {IFolder} from "../storage/stores/NodeStore";
-import path from "path";
+import {UserStore} from "../storage/stores";
 
 export class UserManager {
     private static instance: UserManager;
     userStore: UserStore;
-    nodeStore: NodeStore;
 
     private constructor() {
         this.userStore = new UserStore();
-        this.nodeStore = new NodeStore();
-        // this.userStorage.clearStorage();
     }
 
     static getInstance(): UserManager {
@@ -32,17 +21,15 @@ export class UserManager {
     }
 
     attemptToAuthenticate = async (): Promise<void> => {
-        const userTokens = await this.userStore.getUserTokens();
+        const userTokens = this.userStore.getUserCredentials();
 
         if (!userTokens) {
             throw new Error(`User tokens were not found!`);
         }
 
-        const {access_token, refresh_token} = userTokens;
+        oauth2Client.setCredentials(userTokens);
+        console.log(`User Authenticated.`);
 
-        oauth2Client.setCredentials({access_token, refresh_token})
-
-        console.log("Authenticated")
         if (this.isTokenExpired()) {
             console.log(`Token is expired.`)
             await oauth2Client.refreshAccessToken();
@@ -54,7 +41,7 @@ export class UserManager {
             await this.attemptToAuthenticate();
             const rootFolderId = await createDriveFolder(rootFolderName, null)
 
-            this.userStore.addTrackingFolders(selectedFolders);
+            selectedFolders.forEach(folder => this.userStore.addTrackingFolder(folder))
 
             this.userStore.setRootFolder({name: rootFolderName, id: rootFolderId!});
         } catch (e) {
@@ -65,15 +52,11 @@ export class UserManager {
     initUser = async () => {
         try {
             await this.attemptToAuthenticate();
-            new NodesManager();
+            const foldersToTrack = this.userStore.getTrackingFolders();
+            new NodesManager(foldersToTrack);
         } catch (e: any) {
             throw new Error(e);
         }
-
-        // for (const path of this.trackingPaths) {
-        //     // new NodeTracker(path)
-        // }
-        // }
     }
 
     isTokenExpired = () => {
@@ -88,7 +71,7 @@ export class UserManager {
     };
 
     saveUserTokens = (userTokens: UserTokens) => {
-        this.userStore.setUserTokens(userTokens);
+        this.userStore.setUserCredentials(userTokens);
     }
 
     setUserCredentials = async (authCode: any) => {
