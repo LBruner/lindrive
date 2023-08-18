@@ -1,4 +1,5 @@
-import {NodeStore} from './NodeStore'
-import {UserStore} from './UserStore'
+import {UserStore} from './user/UserStore'
+import FolderStore from './nodes/FolderStore'
+import FileStore from './nodes/FileStore'
 
-export {NodeStore, UserStore};
+export {UserStore,FolderStore,FileStore}
