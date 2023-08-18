@@ -3,8 +3,7 @@ interface File {
     cloudId: string | null,
     path: string,
     parentFolderPath: string,
-    modifiedLocal: string,
-    modifiedCloud: string,
+    modified: string,
     size: number,
     extension: string,
 }
@@ -12,7 +11,7 @@ interface File {
     name: string,
     cloudId: string | null,
     path: string,
-    modifiedLocal: string,
+    modified: string,
     parentFolderPath: string,
 }
 

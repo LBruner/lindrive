@@ -62,6 +62,21 @@ export abstract class NodeStore<T extends INode> implements DataStore {
         console.log(`Created new File: ${file.path}`)
     }
 
+
+    getNode = (folderPath: string) => {
+        return this.allNodesStored.find(folder => folder.path === folderPath);
+    };
+
+    getModifiedDate = (path: string): string | null => {
+        const node = this.getNode(path);
+
+        if (!node) {
+            return null;
+        }
+
+        return node.modified;
+    }
+
     findOne(path: string): T | undefined {
         const storedNode = this.store.get(this.nodeType);
 
@@ -84,20 +99,28 @@ export abstract class NodeStore<T extends INode> implements DataStore {
     };
 
     getAllNodesPath = (): string[] => {
-        const allPaths = this.allNodesStored.map(node => node.path)
-        return allPaths;
+        return this.allNodesStored.map(node => node.path);
     }
 
-    updateOne(newFolder: INode): void {
+    getCloudId = (path: string): string | undefined => {
+        const node = this.findOne(path);
+
+        if (!node) {
+            return undefined;
+        }
+        return node.cloudId!;
+    }
+
+    updateOne(newNode: INode): void {
         const {allNodesStored} = this;
 
-        const folderToChange = allNodesStored.findIndex(node => node.path === newFolder.path);
+        const nodeToChange = allNodesStored.findIndex(node => node.path === newNode.path);
 
-        allNodesStored[folderToChange] = newFolder;
+        allNodesStored[nodeToChange] = newNode;
 
         this.setStore(allNodesStored);
 
-        console.log(`Folder: ${newFolder.path} changed!`);
+        console.log(`Folder: ${newNode.path} changed!`);
     }
 
     deleteOne = async (deletingNodePath: string): Promise<void> => {
@@ -108,8 +131,11 @@ export abstract class NodeStore<T extends INode> implements DataStore {
         this.setStore(filteredFolders);
 
         const deletingNode = this.findOne(deletingNodePath);
+        console.log("DELETING:", deletingNodePath)
+        console.log("DELETING:", deletingNode)
 
         if (deletingNode) {
+            console.log(deletingNode)
             await deleteCloudFile(deletingNode.cloudId!);
         }
 
