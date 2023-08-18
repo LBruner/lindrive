@@ -45,7 +45,7 @@ export const createDriveFolder = async (folderName: string, parentFolder: string
             fields: 'id',
         });
         console.log(`Created folder: ${folderName}`)
-        return file.data.id;
+        return file.data.id!;
     } catch (e: any) {
         console.log(`Item could not be created! Error: ${e.message}`);
         return null;
@@ -70,18 +70,18 @@ export const updateCloudFile = async (fileData: FileUpdateData) => {
     }
 }
 
-export const renameFolder = async (folderId: string, newName: string) => {
-    try {
-        const response = await drive.files.update({
-            fileId: folderId,
-            resource: {
-                name: newName
-            }
-        });
-    } catch (e) {
-        console.log(e)
-    }
-}
+// export const renameFolder = async (folderId: string, newName: string) => {
+//     try {
+//         const response = drive.files.update({
+//             fileId: folderId,
+//             resource: {
+//                 name: newName
+//             }
+//         });
+//     } catch (e) {
+//         console.log(e)
+//     }
+// }
 
 export const deleteCloudFile = async (itemId: string) => {
     try {
