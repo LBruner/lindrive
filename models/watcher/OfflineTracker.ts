@@ -2,11 +2,12 @@ import {INode} from "../nodes/ItemNodes";
 import chokidar from "chokidar";
 import {FolderNode} from "../folder/FolderNode";
 import {FileNode} from "../files/FileNode";
+import {FileStore, FolderStore} from "../storage/stores";
 
 export class OfflineTracker {
     private readonly watcher: chokidar.FSWatcher;
 
-    constructor(public path: string) {
+    constructor(public path: string, private folderStore: FolderStore, private fileStore: FileStore) {
         this.watcher = chokidar.watch(path, {
             ignoreInitial: true,
             awaitWriteFinish: {stabilityThreshold: 2000, pollInterval: 100}
@@ -30,7 +31,7 @@ export class OfflineTracker {
 
         const promise: Promise<INode[]> = new Promise((resolve) => {
             temporaryWatcher.on('addDir', async (eventName: string) => {
-                const folderNode = new FolderNode(eventName);
+                const folderNode = new FolderNode(eventName, this.folderStore);
                 initialNodes.push(folderNode);
             }).on('ready', async () => {
                 resolve(initialNodes);
@@ -48,7 +49,7 @@ export class OfflineTracker {
 
         const promise: Promise<INode[]> = new Promise((resolve) => {
             temporaryWatcher.on('add', (eventName: string) => {
-                const fileNode = new FileNode(eventName);
+                const fileNode = new FileNode(eventName,this.fileStore,this.folderStore);
                 initialNodes.push(fileNode);
             }).on('ready', async () => {
                 resolve(initialNodes)

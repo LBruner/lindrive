@@ -3,10 +3,8 @@ import {ItemNodes} from "../nodes/ItemNodes";
 import {FileNode} from "../files/FileNode";
 import {FolderNode} from "../folder/FolderNode";
 import {OfflineTracker} from "./OfflineTracker";
-import {getAllNodesPath} from "../../db/sequelize";
 import fs from "fs";
-import {NodeStorage} from "../storage/NodeStorage";
-import {IFolder, NodeStore} from "../storage/stores/NodeStore";
+import {FileStore, FolderStore} from "../storage/stores";
 
 const watcherConfig = {
     awaitWriteFinish: {stabilityThreshold: 2000, pollInterval: 100},
@@ -16,10 +14,18 @@ const watcherConfig = {
 }
 
 export class NodeTracker {
-    itemNodes: ItemNodes = new ItemNodes();
+    itemNodes: ItemNodes;
     watcher: ApiWatcher;
+    fileStore: FileStore;
+    folderStore: FolderStore = new FolderStore();
+
 
     constructor(private path: string) {
+        this.fileStore = new FileStore();
+        this.folderStore = new FolderStore();
+
+        this.itemNodes = new ItemNodes(this.fileStore, this.folderStore);
+
         const pathIsValid = this.isFolderPathValid(path);
         if (pathIsValid) {
             this.watcher = new ApiWatcher(path, watcherConfig);
@@ -27,8 +33,8 @@ export class NodeTracker {
         } else {
             console.log(path)
             throw new Error(`Path: ${path} is invalid!`);
-
         }
+
     };
 
     isFolderPathValid(folderPath: string) {
@@ -44,9 +50,9 @@ export class NodeTracker {
         await this.handleInitialNodes();
         this.watcher.onAddFolder(this.addFolderHandler);
         this.watcher.onFolderDelete(this.deleteFolderHandler);
-        // this.watcher.onAddFile(this.addFileHandler);
-        // this.watcher.onFileUpdate(this.updateFileHandler);
-        // this.watcher.onFileDelete(this.deleteFileHandler);
+        this.watcher.onAddFile(this.addFileHandler);
+        this.watcher.onFileUpdate(this.updateFileHandler);
+        this.watcher.onFileDelete(this.deleteFileHandler);
     };
 
     watchDirectory = async () => {
@@ -55,13 +61,12 @@ export class NodeTracker {
 
     //TODO Remove duplicated code
     private addFolderHandler = (nodePath: string) => {
-        console.log("FOLDER ADDED")
-        const folderNode = new FolderNode(nodePath);
+        const folderNode = new FolderNode(nodePath, this.folderStore);
         this.itemNodes.addNode(folderNode);
     }
 
     private addFileHandler = (nodePath: string) => {
-        const fileNode = new FileNode(nodePath);
+        const fileNode = new FileNode(nodePath, this.fileStore, this.folderStore);
         this.itemNodes.addNode(fileNode);
     }
 
@@ -78,15 +83,15 @@ export class NodeTracker {
     }
 
     handleInitialNodes = async () => {
-        const offlineTrack = new OfflineTracker(this.path);
+        const offlineTrack = new OfflineTracker(this.path, this.folderStore, this.fileStore);
         const initialNodes = await offlineTrack.getInitialNodes();
+
         await this.itemNodes.addMultipleNodes(initialNodes);
 
         const deleteErasedNotes = async () => {
-            const nodeStore = new NodeStore();
 
-            const allFoldersPath = await nodeStore.getAllFoldersPath();
-            const allFilesPath = await getAllNodesPath('FILE');
+            const allFoldersPath = this.folderStore.getAllNodesPath();
+            const allFilesPath = this.fileStore.getAllNodesPath();
 
             const initialNodesPath = initialNodes.map((item) => item.path)
 
