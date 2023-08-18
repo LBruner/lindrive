@@ -61,7 +61,7 @@ export class ItemNodes {
 
         if (nodeType == 'FOLDER') {
             deletingNode =  this.folderStore.findOne(nodePath);
-            //TODO: DELETE all files inside a deleted folder;
+            await this.fileStore.deleteNestedFiles(nodePath);
             await this.folderStore.deleteOne(nodePath);
         }
 

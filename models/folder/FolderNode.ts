@@ -22,8 +22,6 @@ export class FolderNode implements INode {
     async uploadToDrive(): Promise<string | null> {
         const parentFolder = this.folderStore.getParentFolder(this.parentFolderPath);
 
-
-        console.log("PARENT FOLDER", parentFolder)
         if (!parentFolder?.cloudId) {
             const userStore = new UserStore();
             const rootFolder = userStore.getRootFolder();
