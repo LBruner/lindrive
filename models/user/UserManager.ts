@@ -1,5 +1,4 @@
 import {oauth2Client} from "../googleDrive/googleAuth"
-import UserData from "./UserData";
 import {createDriveFolder} from "../googleDrive/googleDriveAPI";
 import {UserTokens} from "./UserTokens";
 import {NodesManager} from "../nodes/NodesManager";
@@ -89,7 +88,4 @@ export class UserManager {
         // }
     }
 
-    isAuthenticated = async () => {
-        return await UserData.findOne()
-    }
 }

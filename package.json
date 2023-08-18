@@ -20,12 +20,10 @@
     "electron-store": "^8.1.0",
     "googleapis": "^122.0.0",
     "mime": "^3.0.0",
-    "mysql2": "^3.5.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-hot-loader": "4.13.0",
     "react-router-dom": "^6.14.2",
-    "sequelize": "^6.32.1",
     "styled-components": "5.3.0"
   },
   "devDependencies": {
