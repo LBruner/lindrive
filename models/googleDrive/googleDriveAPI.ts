@@ -4,10 +4,10 @@ import mime from "mime";
 import {FileUpdateData, FileUploadData} from "./types";
 
 
-export const uploadFile = async (fileData: FileUploadData) => {
+export const uploadFile = async (fileData: FileUploadData): Promise<string | null> => {
     const {filePath, fileParentCloudID, fileExtension, fileName} = fileData;
     const media = {
-        mimeType: mime.getType(fileExtension),
+        mimeType: mime.getType(fileExtension) || undefined,
         body: fs.createReadStream(filePath)
     };
 
@@ -22,9 +22,10 @@ export const uploadFile = async (fileData: FileUploadData) => {
         });
         console.log("UPLOADED", res.data.id)
         // driveLogger.info(`File: ${fileName} uploaded to Google Drive with id: ${res.data.id}`);
-        return res.data.id;
+        return res.data.id!;
     } catch (e) {
         console.log(e);
+        return null;
     }
 };
 
@@ -58,7 +59,7 @@ export const updateCloudFile = async (fileData: FileUpdateData) => {
         await drive.files.update({
             fileId: fileID,
             media: {
-                mimeType: mime.getType(fileExtension),
+                mimeType: mime.getType(fileExtension) || undefined,
                 body: fs.createReadStream(filePath),
             }
         })
