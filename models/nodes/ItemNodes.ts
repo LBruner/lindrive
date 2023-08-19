@@ -81,8 +81,6 @@ export class ItemNodes {
     startNodeTracking = async (node: INode): Promise<void> => {
         const getRegisteredId = await node.getRegisteredItemId();
 
-        console.log(`PATH: ${node.path} registered: ${getRegisteredId}`)
-
         if (!getRegisteredId) {
             node.cloudId = await node.uploadToDrive();
             node.register();

@@ -1,24 +1,42 @@
 import {NodeTracker} from "../watcher/NodeTracker";
+import {UserStore} from "../storage/stores";
+import path from "path";
 
 export class NodesManager {
+    private trackingFolders: NodeTracker[] = [];
 
-
-    constructor(private trackingFolders: string[]) {
-
-        this.initTracking();
+    constructor(private userStore: UserStore) {
     }
 
-    initTracking = async () => {
-        const {trackingFolders} = this;
+    getTrackingFolders = () => {
+        const folders = this.trackingFolders.map((folder) => {
+            return {
+                name: path.basename(folder.path),
+                path: folder.path,
+            }
+        })
+        return folders;
+    }
 
-        if (trackingFolders.length === 0) {
-            console.log('No folders to track!')
+    deleteTrackingFolder = async (folderPath: string) => {
+        const foundTrackingFolderIndex = this.trackingFolders.findIndex(item => item.path === folderPath);
+
+        if (foundTrackingFolderIndex === -1) {
+            throw new Error(`Tracking folder with path: ${folderPath} not found!`);
         }
 
-        console.log('tracking', trackingFolders);
+        await this.trackingFolders[foundTrackingFolderIndex].unWatchDirectory();
+        this.userStore.deleteTrackingFolder(folderPath);
+        this.trackingFolders.splice(foundTrackingFolderIndex, 1);
+    }
 
-        for (let folder of trackingFolders) {
-            new NodeTracker(folder);
-        }
+    setStoredTrackingFolders = (trackingFolderPaths: string[]) => {
+        trackingFolderPaths.forEach((folderPath) => this.addTrackingFolder(folderPath));
+    }
+
+    addTrackingFolder = async (trackingFolderPath: string) => {
+        const newNodeTracker = new NodeTracker(trackingFolderPath);
+        this.trackingFolders.push(newNodeTracker);
+        await newNodeTracker.handleInitialNodes();
     }
 }

@@ -98,8 +98,9 @@ export abstract class NodeStore<T extends INode> implements DataStore {
         }
     };
 
-    getAllNodesPath = (): string[] => {
-        return this.allNodesStored.map(node => node.path);
+    getAllNodesPath = (startingPath: string): string[] => {
+        const filteredPaths = this.allNodesStored.filter((node) => node.path.startsWith(startingPath))
+        return filteredPaths.map(node => node.path);
     }
 
     getCloudId = (path: string): string | undefined => {

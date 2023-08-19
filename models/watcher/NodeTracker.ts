@@ -19,8 +19,7 @@ export class NodeTracker {
     fileStore: FileStore;
     folderStore: FolderStore = new FolderStore();
 
-
-    constructor(private path: string) {
+    constructor(public path: string) {
         this.fileStore = new FileStore();
         this.folderStore = new FolderStore();
 
@@ -47,7 +46,6 @@ export class NodeTracker {
     }
 
     handleNodesEvents = async () => {
-        await this.handleInitialNodes();
         this.watcher.onAddFolder(this.addFolderHandler);
         this.watcher.onFolderDelete(this.deleteFolderHandler);
         this.watcher.onAddFile(this.addFileHandler);
@@ -57,6 +55,11 @@ export class NodeTracker {
 
     watchDirectory = async () => {
         await this.handleNodesEvents();
+    }
+
+    unWatchDirectory = async () =>{
+        await this.itemNodes.deleteNode(this.path, 'FOLDER');
+        this.watcher.removeAllEvents();
     }
 
     //TODO Remove duplicated code
@@ -86,15 +89,15 @@ export class NodeTracker {
         const offlineTrack = new OfflineTracker(this.path, this.folderStore, this.fileStore);
         const initialNodes = await offlineTrack.getInitialNodes();
 
+
         await this.itemNodes.addMultipleNodes(initialNodes);
 
         const deleteErasedNotes = async () => {
 
-            const allFoldersPath = this.folderStore.getAllNodesPath();
-            const allFilesPath = this.fileStore.getAllNodesPath();
+            const allFoldersPath = this.folderStore.getAllNodesPath(this.path);
+            const allFilesPath = this.fileStore.getAllNodesPath(this.path);
 
-            const initialNodesPath = initialNodes.map((item) => item.path)
-
+            const initialNodesPath = initialNodes.map((item) => item.path);
             const toDeleteFolders = allFoldersPath.filter((item: string) => !initialNodesPath.includes(item));
             const toDeleteFiles = allFilesPath.filter((item: string) => !initialNodesPath.includes(item));
 

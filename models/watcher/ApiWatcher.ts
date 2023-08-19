@@ -7,6 +7,10 @@ export class ApiWatcher {
         this.watcher = chokidar.watch(path, watcherConfig);
     }
 
+    removeAllEvents = () =>{
+        this.watcher.removeAllListeners();
+    }
+
     onAddFolder = (callback: (nodePath: string) => void): void => {
         this.watcher.on('addDir', callback);
     };

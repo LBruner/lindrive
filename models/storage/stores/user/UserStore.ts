@@ -45,6 +45,12 @@ export class UserStore implements DataStore {
         return this.store.get('trackingFolders');
     }
 
+    deleteTrackingFolder = (deletingTrackingFolder: string) =>{
+        const allTrackingFolders = this.store.get('trackingFolders');
+        const newTrackingFolders = allTrackingFolders.filter(folder => folder !== deletingTrackingFolder)
+        this.store.set('trackingFolders', newTrackingFolders);
+    }
+
     setUserCredentials = (userCredentials: UserTokens): void =>{
         const {access_token,refresh_token} = userCredentials;
         this.store.set('access_token', access_token);
