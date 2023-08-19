@@ -9,17 +9,15 @@ let mainWindow: BrowserWindow;
 const userInstance = UserManager.getInstance();
 
 app.on('ready', async () => {
-    // // await userInstance.setupUser(['/home/lbruner/Documents/Teste'], 'oi');
-    // await userInstance.initUser();
-
     mainWindow = new BrowserWindow({
         title: 'Lindrive',
         webPreferences: {
             nodeIntegration: true, preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         },
-        height: 1000,
-        width: 1300,
+        height: 600,
+        width: 800,
         roundedCorners: true,
+        center: true,
     });
 
     await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
@@ -30,12 +28,27 @@ app.on('ready', async () => {
 
 
     try {
+
+        ipcMain.on(ClientEvents.getTrackingFolders, () => {
+            const trackingFolders = UserManager.getInstance().nodesManager.getTrackingFolders();
+            mainWindow.webContents.send(ServerEvents.sendTrackingFolders, trackingFolders);
+        });
+
+        ipcMain.on(ClientEvents.deleteTrackingFolder, async (_, path: string) => {
+            await UserManager.getInstance().nodesManager.deleteTrackingFolder(path);
+            mainWindow.webContents.send(ServerEvents.sendDeletedTrackingFolder, path);
+        });
+
         await userInstance.initUser();
         console.log("User Returned!");
-        mainWindow.send(ClientEvents.startApp);
+        mainWindow.webContents.send(ClientEvents.startApp);
+
+
+
+
         return;
     } catch (e) {
-        mainWindow.send(ClientEvents.loadLoginPage);
+        mainWindow.webContents.send(ClientEvents.loadLoginPage);
         console.log('User first start')
         ipcMain.on(ServerEvents.authStart, async () => {
             const authWindow = new BrowserWindow({useContentSize: true});
@@ -55,17 +68,19 @@ app.on('ready', async () => {
             userInstance.saveUserTokens({access_token, refresh_token})
 
             console.log("User Logged in!");
-            mainWindow.send(ClientEvents.initialSetup);
+            mainWindow.webContents.send(ClientEvents.initialSetup);
         });
     }
+
 
     ipcMain.on(ServerEvents.setupStart, async (_, args) => {
         const {selectedFolders, rootFolderName} = args;
 
         await userInstance.setupUser(selectedFolders, rootFolderName);
         await userInstance.initUser();
-        mainWindow.send(ClientEvents.startApp);
+        mainWindow.webContents.send(ClientEvents.startApp);
     })
+
 
 });
 

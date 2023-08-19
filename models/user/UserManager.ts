@@ -7,9 +7,11 @@ import {UserStore} from "../storage/stores";
 export class UserManager {
     private static instance: UserManager;
     userStore: UserStore;
+    nodesManager: NodesManager;
 
     private constructor() {
         this.userStore = new UserStore();
+        this.nodesManager = new NodesManager(this.userStore);
     }
 
     static getInstance(): UserManager {
@@ -52,7 +54,7 @@ export class UserManager {
         try {
             await this.attemptToAuthenticate();
             const foldersToTrack = this.userStore.getTrackingFolders();
-            new NodesManager(foldersToTrack);
+            this.nodesManager.setStoredTrackingFolders(foldersToTrack);
         } catch (e: any) {
             throw new Error(e);
         }
