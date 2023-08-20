@@ -28,6 +28,14 @@ app.on('ready', async () => {
 
 
     try {
+        ipcMain.on(ClientEvents.addTrackingFolders, async (_, paths: string[]) => {
+            for (const path of paths) {
+
+
+                await UserManager.getInstance().nodesManager.addTrackingFolder(path);
+            }
+            mainWindow.webContents.send(ServerEvents.sendAddTrackingFolders);
+        });
 
         ipcMain.on(ClientEvents.getTrackingFolders, () => {
             const trackingFolders = UserManager.getInstance().nodesManager.getTrackingFolders();
@@ -42,10 +50,6 @@ app.on('ready', async () => {
         await userInstance.initUser();
         console.log("User Returned!");
         mainWindow.webContents.send(ClientEvents.startApp);
-
-
-
-
         return;
     } catch (e) {
         mainWindow.webContents.send(ClientEvents.loadLoginPage);

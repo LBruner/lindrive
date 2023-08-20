@@ -8,6 +8,7 @@ import {setupIcons} from "./components/UI/icons";
 import TrackingFoldersSettings from "./components/nodes/TrackingFoldersSettings";
 import Navbar from "./components/navbar/Navbar";
 import styled from 'styled-components';
+import AddTrackingFolders from "./components/nodes/AddTrackingFolders";
 
 export function App() {
     const navigate = useNavigate();
@@ -44,6 +45,8 @@ export function App() {
                         <Route path="/login" element={<UserLogin/>}/>
                         <Route path={"/trackingFolders"}
                                element={<TrackingFoldersSettings/>}/>
+                        <Route path={"/addTrackingFolders"}
+                               element={<AddTrackingFolders/>}/>
                         <Route path="/home" element={<Home/>}/>
                     </Routes>
                 </div>

@@ -35,8 +35,16 @@ export class NodesManager {
     }
 
     addTrackingFolder = async (trackingFolderPath: string) => {
+        const nodeExistsAlready = this.trackingFolders.some(node => node.path === trackingFolderPath);
+
+        if(nodeExistsAlready){
+            console.log(`Path: ${trackingFolderPath} is already registered.`);
+            return;
+        }
+
         const newNodeTracker = new NodeTracker(trackingFolderPath);
         this.trackingFolders.push(newNodeTracker);
+        this.userStore.addTrackingFolder(trackingFolderPath);
         await newNodeTracker.handleInitialNodes();
     }
 }

@@ -27,11 +27,12 @@ export class UserStore implements DataStore {
     setStore(storeData: any): void {
         this.store.set(storeData);
     }
-    getUserCredentials = (): UserTokens | null =>{
+
+    getUserCredentials = (): UserTokens | null => {
         const access_token = this.store.get('access_token');
         const refresh_token = this.store.get('refresh_token');
 
-        if(!access_token || !refresh_token){
+        if (!access_token || !refresh_token) {
             return null;
         }
 
@@ -41,34 +42,37 @@ export class UserStore implements DataStore {
         }
     }
 
-    getTrackingFolders = () =>{
+    getTrackingFolders = () => {
         return this.store.get('trackingFolders');
     }
 
-    deleteTrackingFolder = (deletingTrackingFolder: string) =>{
+    deleteTrackingFolder = (deletingTrackingFolder: string) => {
         const allTrackingFolders = this.store.get('trackingFolders');
         const newTrackingFolders = allTrackingFolders.filter(folder => folder !== deletingTrackingFolder)
         this.store.set('trackingFolders', newTrackingFolders);
     }
 
-    setUserCredentials = (userCredentials: UserTokens): void =>{
-        const {access_token,refresh_token} = userCredentials;
+    setUserCredentials = (userCredentials: UserTokens): void => {
+        const {access_token, refresh_token} = userCredentials;
         this.store.set('access_token', access_token);
         this.store.set('refresh_token', refresh_token);
     }
 
-    addTrackingFolder = (newTrackingFolder: string) =>{
+    addTrackingFolder = (newTrackingFolder: string) => {
         const allTrackingFolders = this.store.get('trackingFolders');
+
+        if (allTrackingFolders.includes(newTrackingFolder))
+            return;
 
         allTrackingFolders.push(newTrackingFolder);
         this.store.set('trackingFolders', allTrackingFolders);
     }
 
-    getRootFolder = (): RootFolder =>{
+    getRootFolder = (): RootFolder => {
         return this.store.get('rootFolder');
     }
 
-    setRootFolder = (rootFolder: RootFolder) =>{
+    setRootFolder = (rootFolder: RootFolder) => {
         this.store.set('rootFolder', rootFolder);
     }
 }

@@ -57,10 +57,10 @@ const Navbar: React.FC = _ => {
                     <FontAwesomeIcon icon={'fa-home'} size={"xl"} onClick={onGoToPathHandler.bind(null, 'home')}/>
                 </Item>
                 <Item>
-                    <FontAwesomeIcon icon={'fa-square-plus'} size={"xl"} color={'re'}/>
+                    <FontAwesomeIcon icon={'fa-square-plus'} size={"xl"} onClick={onGoToPathHandler.bind(null, 'addTrackingFolders')}/>
                 </Item>
                 <Item>
-                    <FontAwesomeIcon icon={'fa-folder'} size={"xl"} color={'re'} onClick={onGoToPathHandler.bind(null, 'trackingFolders')}/>
+                    <FontAwesomeIcon icon={'fa-folder'} size={"xl"} onClick={onGoToPathHandler.bind(null, 'trackingFolders')}/>
                 </Item>
                 <Item>
                     <FontAwesomeIcon icon={'fa-moon'} size={"xl"}/>
