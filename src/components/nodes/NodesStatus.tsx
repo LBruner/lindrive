@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {ServerEvents} from "../../../events";
 import {NodeLog} from "../../../models/nodes/NodeLog";
+import NodeStatusItem from "./NodeStatusItem";
 
 const NodesStatus: React.FC = () => {
     const [nodesLog, setNodesLog] = useState<NodeLog[]>([]);
@@ -17,11 +18,8 @@ const NodesStatus: React.FC = () => {
 
     return (
         <div>
-            {nodesLog.map((nodeLog, i) => <div>
-                <p key={i}>
-                    {nodeLog.name} was {nodeLog.operation}
-                </p>
-            </div>)}
+            {nodesLog.map((nodeLog, index) =>
+                <NodeStatusItem key={index} data={nodeLog}/>)}
         </div>
     )
 }

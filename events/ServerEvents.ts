@@ -6,4 +6,6 @@ export enum ServerEvents{
     sendTrackingFolders = 'send:TrackingFolders',
     sendDeletedTrackingFolder = 'del:TrackingFolder',
     sendNodeChanged = 'node:changed',
+    getLogs = 'get:logs',
+    sendLogs = 'logs:send'
 }
