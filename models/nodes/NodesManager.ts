@@ -1,21 +1,22 @@
 import {NodeTracker} from "../watcher/NodeTracker";
 import {UserStore} from "../storage/stores";
 import path from "path";
+import {EventEmitter} from "events";
 
 export class NodesManager {
     private trackingFolders: NodeTracker[] = [];
+    nodeEmitter: EventEmitter = new EventEmitter();
 
     constructor(private userStore: UserStore) {
     }
 
     getTrackingFolders = () => {
-        const folders = this.trackingFolders.map((folder) => {
+        return this.trackingFolders.map((folder) => {
             return {
                 name: path.basename(folder.path),
                 path: folder.path,
             }
-        })
-        return folders;
+        });
     }
 
     deleteTrackingFolder = async (folderPath: string) => {
@@ -46,5 +47,9 @@ export class NodesManager {
         this.trackingFolders.push(newNodeTracker);
         this.userStore.addTrackingFolder(trackingFolderPath);
         await newNodeTracker.handleInitialNodes();
+    }
+
+    getNodesEmitter = (): EventEmitter =>{
+        return this.nodeEmitter;
     }
 }

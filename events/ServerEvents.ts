@@ -4,5 +4,6 @@ export enum ServerEvents{
     setupFinish = 'user:setup-finish',
     sendAddTrackingFolders = 'add:trackingFolders',
     sendTrackingFolders = 'send:TrackingFolders',
-    sendDeletedTrackingFolder = 'del:TrackingFolder'
+    sendDeletedTrackingFolder = 'del:TrackingFolder',
+    sendNodeChanged = 'node:changed',
 }

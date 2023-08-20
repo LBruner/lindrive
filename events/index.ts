@@ -1,4 +1,4 @@
-import {ServerEvents} from './serverEvents'
-import {ClientEvents} from './clientEvents'
+import {ServerEvents} from './ServerEvents'
+import {ClientEvents} from './ClientEvents'
 
 export {ServerEvents, ClientEvents};

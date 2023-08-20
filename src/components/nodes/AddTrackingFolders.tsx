@@ -1,6 +1,6 @@
 import React, {FormEvent, useEffect, useState} from "react";
 import styled from 'styled-components';
-import {ClientEvents, ServerEvents} from "../../../events";
+import {ClientEvents} from "../../../events";
 
 const AddTrackingFolders: React.FC = _ => {
     const [selectedFoldersPath, setSelectedFoldersPath] = useState<Array<string>>([])

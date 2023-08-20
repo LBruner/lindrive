@@ -3,6 +3,9 @@ import {EventEmitter} from "events";
 import {File, Folder, INode} from "./types";
 import {DataStore} from "../DataStore";
 import {deleteCloudFile} from "../../../googleDrive/googleDriveAPI";
+import {UserManager} from "../../../user/UserManager";
+import {NodeLog} from "../../../nodes/NodeLog";
+import {NodeEvents} from "../../../../events/NodeEvents";
 
 interface INodeStore {
     files: File[];
@@ -12,6 +15,7 @@ interface INodeStore {
 export abstract class NodeStore<T extends INode> implements DataStore {
     store: Store<INodeStore>;
     storeEmitter: EventEmitter;
+    nodeEmitter: EventEmitter;
 
     allNodesStored: INode[];
 
@@ -26,6 +30,13 @@ export abstract class NodeStore<T extends INode> implements DataStore {
         this.storeEmitter = new EventEmitter();
         this.setEvents();
         this.refreshStore();
+
+        this.nodeEmitter = UserManager.getInstance().nodesManager.getNodesEmitter();
+    }
+
+    triggerNodeChangeEvent = (node: NodeLog) => {
+        console.log('TRIGGERED', node)
+        this.nodeEmitter.emit(NodeEvents.nodeChanged, node)
     }
 
     setStore(node: INode[]): void {
@@ -59,9 +70,14 @@ export abstract class NodeStore<T extends INode> implements DataStore {
 
         storedFiles.push(file);
         this.setStore(storedFiles);
-        console.log(`Created new File: ${file.path}`)
+        this.triggerNodeChangeEvent({
+            name: file.name,
+            path: file.path,
+            type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
+            operation: 'ADD'
+        });
+        console.log(`Created new File: ${file.path}`);
     }
-
 
     getNode = (folderPath: string) => {
         return this.allNodesStored.find(folder => folder.path === folderPath);
@@ -121,19 +137,35 @@ export abstract class NodeStore<T extends INode> implements DataStore {
 
         this.setStore(allNodesStored);
 
+        this.triggerNodeChangeEvent({
+            name: newNode.name,
+            path: newNode.path,
+            type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
+            operation: 'UPDATE'
+        });
         console.log(`Folder: ${newNode.path} changed!`);
     }
 
     deleteOne = async (deletingNodePath: string): Promise<void> => {
         const {allNodesStored} = this;
 
-        const filteredFolders = allNodesStored.filter(node => !node.path.startsWith(deletingNodePath + '/') && node.path !== deletingNodePath);
+        //TODO Refactor this:
+        const filteredFolders = allNodesStored.filter(node => {
+            return !node.path.startsWith(deletingNodePath + '/') && node.path !== deletingNodePath
+        });
+
+        const deletingFolder = allNodesStored.find(node => !node.path.startsWith(deletingNodePath + '/') && node.path === deletingNodePath)
+
+        this.triggerNodeChangeEvent({
+            name: deletingFolder!.name,
+            path: deletingFolder!.path,
+            type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
+            operation: 'DELETE'
+        });
 
         this.setStore(filteredFolders);
 
         const deletingNode = this.findOne(deletingNodePath);
-        console.log("DELETING:", deletingNodePath)
-        console.log("DELETING:", deletingNode)
 
         if (deletingNode) {
             console.log(deletingNode)

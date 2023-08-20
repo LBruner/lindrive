@@ -1,9 +1,10 @@
 import React from "react";
+import NodesStatus from "./nodes/NodesStatus";
 
 const UserDashboard: React.FC = _ => {
     return (
         <div>
-            <h1>User logged in  </h1>
+            <NodesStatus/>
         </div>
     )
 }

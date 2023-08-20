@@ -2,6 +2,8 @@ import {app, BrowserWindow, dialog, ipcMain} from 'electron'
 import {authUrl, oauth2Client} from "../models/googleDrive/googleAuth";
 import {UserManager} from "../models/user/UserManager";
 import {ClientEvents, ServerEvents} from '../events'
+import {NodeLog} from "../models/nodes/NodeLog";
+import {NodeEvents} from "../events/NodeEvents";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
@@ -26,12 +28,15 @@ app.on('ready', async () => {
     mainWindow.webContents.setDevToolsWebContents(devTools.webContents);
     mainWindow.webContents.openDevTools({mode: 'detach'});
 
+    const eventEmitter = userInstance.nodesManager.getNodesEmitter();
+
+    eventEmitter.on(NodeEvents.nodeChanged, (nodeLog:NodeLog) =>{
+        mainWindow.webContents.send(ServerEvents.sendNodeChanged, nodeLog);
+    });
 
     try {
         ipcMain.on(ClientEvents.addTrackingFolders, async (_, paths: string[]) => {
             for (const path of paths) {
-
-
                 await UserManager.getInstance().nodesManager.addTrackingFolder(path);
             }
             mainWindow.webContents.send(ServerEvents.sendAddTrackingFolders);
