@@ -3,9 +3,7 @@ import {EventEmitter} from "events";
 import {File, Folder, INode} from "./types";
 import {DataStore} from "../DataStore";
 import {deleteCloudFile} from "../../../googleDrive/googleDriveAPI";
-import {UserManager} from "../../../user/UserManager";
-import {NodeLog} from "../../../nodes/NodeLog";
-import {NodeEvents} from "../../../../events/NodeEvents";
+import {NodeLogger} from "../../../nodes/NodeLogger";
 
 interface INodeStore {
     files: File[];
@@ -15,8 +13,7 @@ interface INodeStore {
 export abstract class NodeStore<T extends INode> implements DataStore {
     store: Store<INodeStore>;
     storeEmitter: EventEmitter;
-    nodeEmitter: EventEmitter;
-
+    nodeLogger: NodeLogger;
     allNodesStored: INode[];
 
     protected constructor(protected nodeType: keyof INodeStore) {
@@ -30,13 +27,7 @@ export abstract class NodeStore<T extends INode> implements DataStore {
         this.storeEmitter = new EventEmitter();
         this.setEvents();
         this.refreshStore();
-
-        this.nodeEmitter = UserManager.getInstance().nodesManager.getNodesEmitter();
-    }
-
-    triggerNodeChangeEvent = (node: NodeLog) => {
-        console.log('TRIGGERED', node)
-        this.nodeEmitter.emit(NodeEvents.nodeChanged, node)
+        this.nodeLogger = new NodeLogger();
     }
 
     setStore(node: INode[]): void {
@@ -70,12 +61,21 @@ export abstract class NodeStore<T extends INode> implements DataStore {
 
         storedFiles.push(file);
         this.setStore(storedFiles);
-        this.triggerNodeChangeEvent({
+
+        this.nodeLogger.createLog({
             name: file.name,
             path: file.path,
             type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
-            operation: 'ADD'
+            operation: 'ADD',
+            date: new Date().toISOString().slice(0, 19)
         });
+
+        // this.triggerNodeChangeEvent({
+        //     name: file.name,
+        //     path: file.path,
+        //     type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
+        //     operation: 'ADD'
+        // });
         console.log(`Created new File: ${file.path}`);
     }
 
@@ -137,11 +137,12 @@ export abstract class NodeStore<T extends INode> implements DataStore {
 
         this.setStore(allNodesStored);
 
-        this.triggerNodeChangeEvent({
+        this.nodeLogger.createLog({
             name: newNode.name,
             path: newNode.path,
             type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
-            operation: 'UPDATE'
+            operation: 'UPDATE',
+            date: new Date().toISOString().slice(0, 19)
         });
         console.log(`Folder: ${newNode.path} changed!`);
     }
@@ -156,12 +157,13 @@ export abstract class NodeStore<T extends INode> implements DataStore {
 
         const deletingFolder = allNodesStored.find(node => !node.path.startsWith(deletingNodePath + '/') && node.path === deletingNodePath)
 
-        this.triggerNodeChangeEvent({
+        this.nodeLogger.createLog({
             name: deletingFolder!.name,
             path: deletingFolder!.path,
             type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
-            operation: 'DELETE'
-        });
+            operation: 'DELETE',
+            date: new Date().toISOString().slice(0, 19)
+        })
 
         this.setStore(filteredFolders);
 
