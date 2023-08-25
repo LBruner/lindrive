@@ -1,4 +1,5 @@
-import {contextBridge, dialog, ipcRenderer, remote} from 'electron'
+import {contextBridge, ipcRenderer} from 'electron'
+
 export const api = {
     send: (event: string, args?: any) => {
         ipcRenderer.send(event, args);
@@ -9,7 +10,7 @@ export const api = {
     },
 
     removeAllListeners: (listener: string) => {
-        ipcRenderer.removeAllListeners('selectedFolders');
+        ipcRenderer.removeAllListeners(listener);
     }
 }
 

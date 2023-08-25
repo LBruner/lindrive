@@ -13,16 +13,13 @@ const NodesStatus: React.FC = () => {
 
         window.Main.on(ServerEvents.sendLogs, (dayNodes: NodeLog[]) => {
             console.log("GETTING")
-            setNodesLog(prevState => dayNodes);
+            setNodesLog(dayNodes);
         });
 
         window.Main.send(ClientEvents.getLogs);
 
         return(() =>{
-            window.Main.removeAllListeners(ClientEvents.getLogs)
-            window.Main.removeAllListeners(ServerEvents.sendLogs)
-            window.Main.removeAllListeners(ServerEvents.sendNodeChanged)
-            setNodesLog(prevState => []);
+            window.Main.removeAllListeners(ServerEvents.sendLogs);
         })
     }, []);
 

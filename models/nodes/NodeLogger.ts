@@ -29,6 +29,7 @@ export class NodeLogger {
     /**
      *  App deletes every node log older than the current day
      */
+
     deleteOldLogs = () => {
         const allLogs = this.store.get('logs');
         const today = new Date().toISOString().slice(0, 10);
