@@ -16,9 +16,10 @@ app.on('ready', async () => {
             nodeIntegration: true, preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         },
         height: 600,
-        width: 800,
+        width: 760,
         roundedCorners: true,
         center: true,
+        resizable: false
     });
 
     await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);

@@ -24,7 +24,6 @@ const NodeStatusItem: React.FC<{ data: NodeLog }> = ({data}) => {
       justify-content: flex-start;
       gap: 20px;
       align-items: center;
-      width: 100%;
     `
     let operationIcon;
 
@@ -40,25 +39,21 @@ const NodeStatusItem: React.FC<{ data: NodeLog }> = ({data}) => {
 
     let tooltip = '';
 
-    if(operation === 'ADD'){
+    if (operation === 'ADD') {
         tooltip = `${type === 'FOLDER' ? 'Folder' : 'File'} located at: ${path} was added.`
-    }
-    else if(operation === 'UPDATE'){
+    } else if (operation === 'UPDATE') {
         tooltip = `${type === 'FOLDER' ? 'Folder' : 'File'} located at: ${path} was updated.`
-    }
-    else{
+    } else {
         tooltip = `${type === 'FOLDER' ? 'Folder' : 'File'} located at: ${path} was deleted.`
     }
 
     return (
-        <Container>
+        <Container data-toggle="tooltip" data-placement="top" title={tooltip}>
             <IconContainer>
                 {nodeIcon}
                 {operationIcon}
             </IconContainer>
             <span>{fileName}</span>
-            {/*<span>{tooltip}</span>*/}
-            //TODO : maybe add as an tooltip
         </Container>
     )
 }

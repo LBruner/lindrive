@@ -1,4 +1,3 @@
-import {GlobalStyle} from './styles/GlobalStyle'
 import Home from "./components/Home";
 import {Route, Routes, useLocation, useNavigate,} from "react-router-dom";
 import {ClientEvents} from "../events";
@@ -31,11 +30,6 @@ export function App() {
     window.Main.on(ClientEvents.loadLoginPage, () => {
         navigate('/login')
     });
-
-    const ContentDivider = styled.div`
-      display: grid;
-      grid-template-columns: 6rem 1fr
-    `
 
     const Title = styled.h1`
       padding: 25px;

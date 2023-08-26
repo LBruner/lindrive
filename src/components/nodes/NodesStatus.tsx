@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import {ClientEvents, ServerEvents} from "../../../events";
 import {NodeLog} from "../../../models/nodes/NodeLog";
 import NodeStatusItem from "./NodeStatusItem";
-import styled from "styled-components";
 
 const NodesStatus: React.FC = () => {
     const [nodesLog, setNodesLog] = useState<NodeLog[]>([]);
@@ -20,28 +19,21 @@ const NodesStatus: React.FC = () => {
 
         window.Main.send(ClientEvents.getLogs);
 
-        return(() =>{
+        return (() => {
             window.Main.removeAllListeners(ServerEvents.sendLogs);
         })
     }, []);
 
-    const Container = styled.div`
-      padding: 40px;
-      display: flex;
-      justify-content: flex-start;
-      gap: 40px;
-      overflow: auto;
-      flex-direction: column;
-      border-radius: 10px;
-      background-color: rgba(176, 181, 181, 0.11);
-      height: 90vh;
-    `
-
     return (
-        <Container>
-            {nodesLog.map((nodeLog, index) =>
-                <NodeStatusItem key={index} data={nodeLog}/>)}
-        </Container>
+        <div className="card">
+            <ul className="list-group list-group-flush">
+                {nodesLog.map((nodeLog, index) =>
+                    <li key={index} className="list-group-item">
+                        <NodeStatusItem  data={nodeLog}/>
+                    </li>
+                )}
+            </ul>
+        </div>
     )
 }
 
