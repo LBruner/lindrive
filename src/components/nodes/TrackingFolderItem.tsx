@@ -10,11 +10,9 @@ interface TrackingFolderProp {
 
 const TrackingFolderItem: React.FC<TrackingFolderProp> = ({name, path}) => {
     const Container = styled.div`
-      display: flex;
-      justify-content: space-evenly;
+      padding: 20px;
     `
-
-    const onDeleteTrackingFolder =() =>{
+    const onDeleteTrackingFolder = () => {
         window.Main.send(ClientEvents.deleteTrackingFolder, path);
     };
 

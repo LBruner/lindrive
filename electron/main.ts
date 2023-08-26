@@ -3,7 +3,6 @@ import {authUrl, oauth2Client} from "../models/googleDrive/googleAuth";
 import {UserManager} from "../models/user/UserManager";
 import {ClientEvents, ServerEvents} from '../events'
 import {NodeLog} from "../models/nodes/NodeLog";
-import {NodeEvents} from "../events/NodeEvents";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
@@ -44,7 +43,7 @@ app.on('ready', async () => {
     //TODO this event is being triggered 3 times.
     eventEmitter.on(ServerEvents.sendLogs, (dayLogs:NodeLog[]) =>{
         console.log("SENDING LOGS")
-        mainWindow.webContents.send(ServerEvents.sendLogs, dayLogs);
+        mainWindow.webContents.send(ServerEvents.sendLogs, dayLogs.reverse());
     });
 
     try {

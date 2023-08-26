@@ -1,6 +1,6 @@
 import {GlobalStyle} from './styles/GlobalStyle'
 import Home from "./components/Home";
-import {Route, Routes, useNavigate} from "react-router-dom";
+import {Route, Routes, useLocation, useNavigate,} from "react-router-dom";
 import {ClientEvents} from "../events";
 import AppSetup from "./components/AppSetup";
 import UserLogin from "./components/UserLogin";
@@ -12,6 +12,7 @@ import AddTrackingFolders from "./components/nodes/AddTrackingFolders";
 
 export function App() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     setupIcons();
 
@@ -34,12 +35,30 @@ export function App() {
       grid-template-columns: 6rem 1fr
     `
 
+    const Title = styled.h1`
+      padding: 25px;
+    `
+
+    let locationTitle = ''
+
+    if (location.pathname === '/home')
+        locationTitle = 'Home'
+    if (location.pathname === '/addTrackingFolders')
+        locationTitle = 'Add Folders'
+    if (location.pathname === '/trackingFolders')
+        locationTitle = 'All Folders'
+    if (location.pathname === '/addTrackingFolders')
+        locationTitle = 'Add Folders'
+
     return (
         <>
             <GlobalStyle/>
             <ContentDivider>
                 <Navbar/>
                 <div>
+                    <Title>
+                        {locationTitle}
+                    </Title>
                     <Routes>
                         <Route path="/setup" element={<AppSetup/>}/>
                         <Route path="/login" element={<UserLogin/>}/>

@@ -28,12 +28,15 @@ export class UserManager {
             throw new Error(`User tokens were not found!`);
         }
 
-        oauth2Client.setCredentials(userTokens);
-        console.log(`User Authenticated.`);
-
-        if (this.isTokenExpired()) {
-            console.log(`Token is expired.`)
-            await oauth2Client.refreshAccessToken();
+        try{
+            oauth2Client.setCredentials(userTokens);
+            console.log(`User Authenticated.`);
+        }
+        catch (e) {
+            if (this.isTokenExpired()) {
+                console.log(`Token is expired.`)
+                await oauth2Client.refreshAccessToken();
+            }
         }
     }
 
