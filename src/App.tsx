@@ -9,6 +9,8 @@ import TrackingFoldersSettings from "./components/nodes/TrackingFoldersSettings"
 import Navbar from "./components/navbar/Navbar";
 import styled from 'styled-components';
 import AddTrackingFolders from "./components/nodes/AddTrackingFolders";
+import 'bootstrap';
+import '../src/styles/styles.scss'
 
 export function App() {
     const navigate = useNavigate();
@@ -50,26 +52,28 @@ export function App() {
     if (location.pathname === '/addTrackingFolders')
         locationTitle = 'Add Folders'
 
+
     return (
         <>
-            <GlobalStyle/>
-            <ContentDivider>
-                <Navbar/>
-                <div>
-                    <Title>
-                        {locationTitle}
-                    </Title>
-                    <Routes>
-                        <Route path="/setup" element={<AppSetup/>}/>
-                        <Route path="/login" element={<UserLogin/>}/>
-                        <Route path={"/trackingFolders"}
-                               element={<TrackingFoldersSettings/>}/>
-                        <Route path={"/addTrackingFolders"}
-                               element={<AddTrackingFolders/>}/>
-                        <Route path="/home" element={<Home/>}/>
-                    </Routes>
+            <div className="container-fluid">
+                <div className="row">
+                    <Navbar/>
+                    <main className="col">
+                        <Title>
+                            {locationTitle}
+                        </Title>
+                        <Routes>
+                            <Route path="/setup" element={<AppSetup/>}/>
+                            <Route path="/login" element={<UserLogin/>}/>
+                            <Route path={"/trackingFolders"}
+                                   element={<TrackingFoldersSettings/>}/>
+                            <Route path={"/addTrackingFolders"}
+                                   element={<AddTrackingFolders/>}/>
+                            <Route path="/home" element={<Home/>}/>
+                        </Routes>
+                    </main>
                 </div>
-            </ContentDivider>
+            </div>
         </>
     )
 }
