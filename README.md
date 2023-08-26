@@ -21,7 +21,7 @@ The project utilizes the following technologies:
 
 ## Development Progress 🚧
 
-Currently, the project is in the alpha stage. I have completed most of the features I initially thought, those being:
+Currently, the project is in alpha stage. I have completed most of the features I initially thought, those being:
 * Log into Google Account using oAuth
 * Add/Delete folders which are going to be watched for file changes
 * Files and folders change reflex into Google Drive Account
