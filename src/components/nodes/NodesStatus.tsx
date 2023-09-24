@@ -25,15 +25,20 @@ const NodesStatus: React.FC = () => {
     }, []);
 
     return (
-        <div className="card">
-            <ul className="list-group list-group-flush">
-                {nodesLog.map((nodeLog, index) =>
-                    <li key={index} className="list-group-item">
-                        <NodeStatusItem  data={nodeLog}/>
-                    </li>
-                )}
-            </ul>
-        </div>
+        <>
+            {nodesLog.length === 0 && <p className={'list-group-item'}>Nothing new here.</p>}
+            {nodesLog.length > 0 &&
+                <div className="card">
+                    <ul className="list-group list-group-flush">
+                        {nodesLog.map((nodeLog, index) =>
+                            <li key={index} className="list-group-item">
+                                <NodeStatusItem data={nodeLog}/>
+                            </li>
+                        )}
+                    </ul>
+                </div>
+            }
+        </>
     )
 }
 
