@@ -26,7 +26,6 @@ const TrackingFolderItem: React.FC<TrackingFolderProp> = ({name, path}) => {
                             <div className="shadow-none">
                                 <p className={'text-danger fs-4'}>
                                     All the files and folders will be deleted <span className={'fw-bolder'}>on your Google Drive folder</span>.
-
                                 </p>
                             </div>
                         </div>

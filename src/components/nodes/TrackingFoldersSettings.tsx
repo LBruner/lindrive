@@ -8,7 +8,7 @@ interface Folder {
 }
 
 const TrackingFoldersSettings: React.FC = () => {
-    const [trackingFolders, setTrackingFolders] = useState<Folder[]>([])
+    const [trackingFolders, setTrackingFolders] = useState<Folder[]>([]);
 
     useEffect(() => {
         window.Main.send(ClientEvents.getTrackingFolders);

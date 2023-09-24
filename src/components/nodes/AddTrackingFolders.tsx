@@ -1,6 +1,5 @@
 import React, {FormEvent, useEffect, useState} from "react";
-import styled from 'styled-components';
-import {ClientEvents, ServerEvents} from "../../../events";
+import {ClientEvents} from "../../../events";
 
 const AddTrackingFolders: React.FC = _ => {
     const [selectedFoldersPath, setSelectedFoldersPath] = useState<Array<string>>([])
@@ -19,10 +18,6 @@ const AddTrackingFolders: React.FC = _ => {
         })
     }, [selectedFoldersPath]);
 
-    const Form = styled.form`
-
-    `
-
     const onPickFolders = async (event: any) => {
         event.preventDefault();
         window.Main.send('openFolderDialog');
@@ -37,7 +32,7 @@ const AddTrackingFolders: React.FC = _ => {
     return (
         <>
             <h6 className={'text-dark alert alert-light'}>Here you can remove folders that you are tracking</h6>
-            <Form onSubmit={onSubmitHandler}>
+            <form onSubmit={onSubmitHandler}>
                 <button type={'button'} onClick={onPickFolders}>
                     Select Folders
                 </button>
@@ -45,7 +40,7 @@ const AddTrackingFolders: React.FC = _ => {
                     return <p key={index}>{item}</p>
                 })}
                 <button type={'submit'}>Add folders.</button>
-            </Form>
+            </form>
         </>
     )
 }

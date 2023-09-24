@@ -30,19 +30,19 @@ app.on('ready', async () => {
 
     const eventEmitter = userInstance.nodesManager.getNodesEmitter();
 
-    eventEmitter.on(ServerEvents.sendNodeChanged, (newLog:NodeLog) =>{
+    eventEmitter.on(ServerEvents.sendNodeChanged, (newLog: NodeLog) => {
         console.log('new', newLog)
         mainWindow.webContents.send(ServerEvents.sendNodeChanged, newLog);
     });
 
-    ipcMain.on(ClientEvents.getLogs, () =>{
+    ipcMain.on(ClientEvents.getLogs, () => {
         console.log("GIVE ME LOGS")
         const emitter = userInstance.nodesManager.getNodesEmitter();
         emitter.emit(ServerEvents.getLogs);
     });
 
     //TODO this event is being triggered 3 times.
-    eventEmitter.on(ServerEvents.sendLogs, (dayLogs:NodeLog[]) =>{
+    eventEmitter.on(ServerEvents.sendLogs, (dayLogs: NodeLog[]) => {
         console.log("SENDING LOGS")
         mainWindow.webContents.send(ServerEvents.sendLogs, dayLogs.reverse());
     });
@@ -62,6 +62,7 @@ app.on('ready', async () => {
 
         ipcMain.on(ClientEvents.deleteTrackingFolder, async (_, path: string) => {
             await UserManager.getInstance().nodesManager.deleteTrackingFolder(path);
+            console.log(path)
             mainWindow.webContents.send(ServerEvents.sendDeletedTrackingFolder, path);
         });
 
