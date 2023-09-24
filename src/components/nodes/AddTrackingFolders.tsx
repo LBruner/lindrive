@@ -1,6 +1,6 @@
 import React, {FormEvent, useEffect, useState} from "react";
 import styled from 'styled-components';
-import {ClientEvents} from "../../../events";
+import {ClientEvents, ServerEvents} from "../../../events";
 
 const AddTrackingFolders: React.FC = _ => {
     const [selectedFoldersPath, setSelectedFoldersPath] = useState<Array<string>>([])
@@ -13,6 +13,10 @@ const AddTrackingFolders: React.FC = _ => {
             setSelectedFoldersPath((prevFolders) => [...prevFolders, ...uniqueNewFolders]);
             window.Main.removeAllListeners('selectedFolders')
         })
+
+        return(() =>{
+            window.Main.removeAllListeners('selectedFolders')
+        })
     }, [selectedFoldersPath]);
 
     const Form = styled.form`
@@ -21,7 +25,7 @@ const AddTrackingFolders: React.FC = _ => {
 
     const onPickFolders = async (event: any) => {
         event.preventDefault();
-        window.Main.send('openFolderDialog')
+        window.Main.send('openFolderDialog');
     }
 
     const onSubmitHandler = (event: FormEvent) => {
@@ -31,17 +35,18 @@ const AddTrackingFolders: React.FC = _ => {
     }
 
     return (
-        <Form onSubmit={onSubmitHandler}>
-            <button type={'button'} onClick={onPickFolders}>
-                Select Folders
-            </button>
-            {selectedFoldersPath.map((item, index) => {
-                return <p key={index}>{item}</p>
-            })}
-            <button type={'submit'}>
-                Add Folders
-            </button>
-        </Form>
+        <>
+            <h6 className={'text-dark alert alert-light'}>Here you can remove folders that you are tracking</h6>
+            <Form onSubmit={onSubmitHandler}>
+                <button type={'button'} onClick={onPickFolders}>
+                    Select Folders
+                </button>
+                {selectedFoldersPath.map((item, index) => {
+                    return <p key={index}>{item}</p>
+                })}
+                <button type={'submit'}>Add folders.</button>
+            </Form>
+        </>
     )
 }
 
