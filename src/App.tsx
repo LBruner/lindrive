@@ -51,7 +51,7 @@ export function App() {
         <>
             <div className="container-fluid">
                 <div className="row">
-                    {location.pathname === '/home' && <Navbar/>}
+                    {location.pathname !== 'setup' && <Navbar/>}
                     <main className="col">
                         <Title>
                             {locationTitle}

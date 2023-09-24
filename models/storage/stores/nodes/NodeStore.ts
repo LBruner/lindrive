@@ -62,20 +62,16 @@ export abstract class NodeStore<T extends INode> implements DataStore {
         storedFiles.push(file);
         this.setStore(storedFiles);
 
-        this.nodeLogger.createLog({
-            name: file.name,
-            path: file.path,
-            type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
-            operation: 'ADD',
-            date: new Date().toISOString().slice(0, 19)
-        });
+        if (this.nodeType === "files") {
+            this.nodeLogger.createLog({
+                name: file.name,
+                path: file.path,
+                type: 'FILE',
+                operation: 'ADD',
+                date: new Date().toISOString().slice(0, 19)
+            });
+        }
 
-        // this.triggerNodeChangeEvent({
-        //     name: file.name,
-        //     path: file.path,
-        //     type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
-        //     operation: 'ADD'
-        // });
         console.log(`Created new File: ${file.path}`);
     }
 
