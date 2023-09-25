@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {ClientEvents, ServerEvents} from "../../../events";
 import TrackingFolderItem from "./TrackingFolderItem";
+import AddTrackingFolders from "./AddTrackingFolders";
 
 interface Folder {
     name: string,
@@ -31,7 +32,14 @@ const TrackingFoldersSettings: React.FC = () => {
 
     return (
         <>
-            <h6 className={'text-dark alert alert-light'}>Here you can remove folders that you are tracking</h6>
+            <AddTrackingFolders/>
+            <hr className="border border-dark-subtle border-1 opacity-100"/>
+
+            <h6 className={'text-dark alert alert-light'}>Here you can add new folders and remove folders the ones you
+                are tracking</h6>
+            {trackingFolders.length === 0 && <p className={'.text-body-secondary'}>
+                You don't have any tracking folder. How about adding some?
+            </p>}
             {trackingFolders.map(folder => <TrackingFolderItem key={folder.name} name={folder.name}
                                                                path={folder.path}/>)}
         </>

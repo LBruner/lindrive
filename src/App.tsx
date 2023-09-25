@@ -16,6 +16,7 @@ export function App() {
     const location = useLocation();
 
     setupIcons();
+    console.log(location.pathname)
 
     window.Main.on(ClientEvents.initialSetup, () => {
         console.log("First Login Client")
@@ -51,7 +52,7 @@ export function App() {
         <>
             <div className="container-fluid">
                 <div className="row">
-                    {location.pathname !== 'setup' && <Navbar/>}
+                    {location.pathname !== '/login' && location.pathname !== '/setup' && <Navbar/>}
                     <main className="col">
                         <Title>
                             {locationTitle}

@@ -133,13 +133,15 @@ export abstract class NodeStore<T extends INode> implements DataStore {
 
         this.setStore(allNodesStored);
 
-        this.nodeLogger.createLog({
-            name: newNode.name,
-            path: newNode.path,
-            type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
-            operation: 'UPDATE',
-            date: new Date().toISOString().slice(0, 19)
-        });
+        if (this.nodeType === "files") {
+            this.nodeLogger.createLog({
+                name: newNode.name,
+                path: newNode.path,
+                type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
+                operation: 'UPDATE',
+                date: new Date().toISOString().slice(0, 19)
+            });
+        }
         console.log(`Folder: ${newNode.path} changed!`);
     }
 
@@ -153,13 +155,15 @@ export abstract class NodeStore<T extends INode> implements DataStore {
 
         const deletingFolder = allNodesStored.find(node => !node.path.startsWith(deletingNodePath + '/') && node.path === deletingNodePath)
 
-        this.nodeLogger.createLog({
-            name: deletingFolder!.name,
-            path: deletingFolder!.path,
-            type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
-            operation: 'DELETE',
-            date: new Date().toISOString().slice(0, 19)
-        })
+        if (this.nodeType === "files") {
+            this.nodeLogger.createLog({
+                name: deletingFolder!.name,
+                path: deletingFolder!.path,
+                type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
+                operation: 'DELETE',
+                date: new Date().toISOString().slice(0, 19)
+            })
+        }
 
         this.setStore(filteredFolders);
 

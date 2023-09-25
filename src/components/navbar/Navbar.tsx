@@ -37,13 +37,6 @@ const Navbar: React.FC = _ => {
                                              size={"xl"} onClick={onGoToPathHandler.bind(null, 'trackingFolders')}/>
                         </a>
                     </li>
-                    <li className="nav-item my-bg-0" data-toggle="tooltip" data-placement="top" title="Add Folders">
-                        <a className="nav-link">
-                            <FontAwesomeIcon icon={'fa-square-plus'}
-                                             color={location.pathname === '/addTrackingFolders' ? activeTabColor : unActiveTabColor}
-                                             size={"xl"} onClick={onGoToPathHandler.bind(null, 'addTrackingFolders')}/>
-                        </a>
-                    </li>
                     <li className="nav-item my-bg-0">
                         <a className="nav-link" href="#">
                             <FontAwesomeIcon icon={'fa-moon'}

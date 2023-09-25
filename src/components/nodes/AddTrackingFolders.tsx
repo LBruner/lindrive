@@ -13,7 +13,7 @@ const AddTrackingFolders: React.FC = _ => {
             window.Main.removeAllListeners('selectedFolders')
         })
 
-        return(() =>{
+        return (() => {
             window.Main.removeAllListeners('selectedFolders')
         })
     }, [selectedFoldersPath]);
@@ -23,23 +23,62 @@ const AddTrackingFolders: React.FC = _ => {
         window.Main.send('openFolderDialog');
     }
 
+    const resetFolders = () => {
+        setSelectedFoldersPath([]);
+    }
+
     const onSubmitHandler = (event: FormEvent) => {
         event.preventDefault();
-        console.log("SUBMIT")
-        window.Main.send(ClientEvents.addTrackingFolders, selectedFoldersPath)
+        window.Main.send(ClientEvents.addTrackingFolders, selectedFoldersPath);
+        setSelectedFoldersPath([]);
+        window.Main.send(ClientEvents.getTrackingFolders);
+    }
+
+    const onDeleteFolder = (folderName: string) => {
+        const newSelectedFolders = selectedFoldersPath.filter((item) => item !== folderName);
+        setSelectedFoldersPath(newSelectedFolders);
     }
 
     return (
         <>
-            <h6 className={'text-dark alert alert-light'}>Here you can remove folders that you are tracking</h6>
+            <h6 className={'text-dark alert alert-light mb-0'}>Here you can add folders to track</h6>
             <form onSubmit={onSubmitHandler}>
-                <button type={'button'} onClick={onPickFolders}>
-                    Select Folders
-                </button>
-                {selectedFoldersPath.map((item, index) => {
-                    return <p key={index}>{item}</p>
-                })}
-                <button type={'submit'}>Add folders.</button>
+                <div className={'d-flex gap-1'}>
+                    <button className={'btn btn-secondary mt-3 mb-3'} type={'button'} onClick={onPickFolders}>
+                        Select Folders
+                    </button>
+                    {selectedFoldersPath.length > 0 &&
+                        <>
+                            <button className={'btn btn-secondary mt-3 mb-3'} type={'button'} onClick={resetFolders}>
+                                Reset selected folders
+                            </button>
+                            <button className={'btn btn-primary mt-3 mb-3'} type={'submit'}>Add folders</button>
+                        </>
+                    }
+
+                </div>
+                {selectedFoldersPath.length > 0 &&
+                    <>
+                        <div className="list-group mb-3">
+                            <button type="button" className="list-group-item list-group-item-action active"
+                                    aria-current="true">
+                                Folders to add:
+                            </button>
+                            {selectedFoldersPath.map((item) => {
+                                return (
+                                    <div key={item}
+                                        className={'list-group-item list-group-item-action d-flex justify-content-between align-items-center'}>
+                                        <span>{item}</span>
+                                        <button onClick={onDeleteFolder.bind(null, item)} type="button"
+                                                className={'btn btn-danger'}>Delete
+                                        </button>
+                                    </div>
+                                )
+
+                            })}
+                        </div>
+                    </>
+                }
             </form>
         </>
     )
