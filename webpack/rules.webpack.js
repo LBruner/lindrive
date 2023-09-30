@@ -14,6 +14,12 @@ module.exports = [
     },
   },
   {
+    test: /\.m?js/,
+    resolve: {
+      fullySpecified: false,
+    },
+  },
+  {
     test: /\.(js|ts|tsx)$/,
     exclude: /node_modules/,
     use: {
@@ -51,4 +57,5 @@ module.exports = [
       }
     ]
   },
+
 ]
