@@ -12,21 +12,22 @@ const TrackingFoldersSettings: React.FC = () => {
     const [trackingFolders, setTrackingFolders] = useState<Folder[]>([]);
 
     useEffect(() => {
-        window.Main.send(ClientEvents.getTrackingFolders);
-
         window.Main.on(ServerEvents.sendTrackingFolders, (trackingFolders: Folder[]) => {
-            console.log(trackingFolders)
             setTrackingFolders(trackingFolders);
         });
 
-        window.Main.on(ServerEvents.sendDeletedTrackingFolder, () => {
+        window.Main.on(ServerEvents.sendDeletedTrackingFolder, (trackingFolders: Folder[]) => {
+            setTrackingFolders(trackingFolders);
+        });
+
+        window.Main.on(ServerEvents.sendAddTrackingFolders, () => {
             window.Main.send(ClientEvents.getTrackingFolders);
         });
+        window.Main.send(ClientEvents.getTrackingFolders);
 
         return (() => {
             window.Main.removeAllListeners(ServerEvents.sendTrackingFolders)
             window.Main.removeAllListeners(ServerEvents.sendDeletedTrackingFolder)
-            window.Main.removeAllListeners(ClientEvents.getTrackingFolders)
         })
     }, []);
 
