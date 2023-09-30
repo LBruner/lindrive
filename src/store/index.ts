@@ -1,9 +1,11 @@
 import {configureStore} from '@reduxjs/toolkit';
 import loadingReducer from './slices/loadingSlice';
+import UIReducer from './slices/notification';
 
 const store = configureStore({
     reducer: {
         loading: loadingReducer,
+        ui: UIReducer,
     },
 });
 
