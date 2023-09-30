@@ -4,15 +4,21 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../store";
 import {ServerEvents} from "../../../events";
 import {stopLoading} from "../../store/slices/loadingSlice";
+import {Notification} from "electron";
+import {uiActions} from "../../store/slices/notification";
 
 const LoadingScreen: React.FC = _ => {
     const appIsLoading = useSelector((state: RootState) => state.loading.isLoading);
     const dispatch = useDispatch();
 
     useEffect(() => {
-        window.Main.on(ServerEvents.finishedLoading, () => {
+        window.Main.on(ServerEvents.finishedLoading, (notification: Notification) => {
             console.log("ACONTECEU")
             dispatch(stopLoading());
+
+            dispatch(uiActions.showNotification({
+                notification
+            }));
         })
     }, []);
 

@@ -3,6 +3,7 @@ import {authUrl, oauth2Client} from "../models/googleDrive/googleAuth";
 import {UserManager} from "../models/user/UserManager";
 import {ClientEvents, ServerEvents} from '../events'
 import {NodeLog} from "../models/nodes/NodeLog";
+import {Notification} from '../src/components/UI/Notification'
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
@@ -53,7 +54,16 @@ app.on('ready', async () => {
                 await UserManager.getInstance().nodesManager.addTrackingFolder(path);
             }
             mainWindow.webContents.send(ServerEvents.sendAddTrackingFolders, paths);
-            mainWindow.webContents.send(ServerEvents.finishedLoading);
+
+            const notification: Notification = {
+                details: {
+                    title: `Success!`,
+                    status: 'success',
+                    message: 'The folder was added'
+                },
+                timer: 3000
+            }
+            mainWindow.webContents.send(ServerEvents.finishedLoading, notification);
         });
 
         ipcMain.on(ClientEvents.getTrackingFolders, () => {
@@ -64,7 +74,17 @@ app.on('ready', async () => {
         ipcMain.on(ClientEvents.deleteTrackingFolder, async (_, path: string) => {
             await UserManager.getInstance().nodesManager.deleteTrackingFolder(path);
             mainWindow.webContents.send(ServerEvents.sendTrackingFolders, UserManager.getInstance().nodesManager.getTrackingFolders());
-            mainWindow.webContents.send(ServerEvents.finishedLoading);
+
+            const notification: Notification = {
+                details: {
+                    title: `Success!`,
+                    status: 'success',
+                    message: 'The folder was deleted'
+                },
+                 timer: 3000
+            }
+
+            mainWindow.webContents.send(ServerEvents.finishedLoading, notification);
         });
 
         await userInstance.initUser();

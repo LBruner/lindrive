@@ -7,10 +7,17 @@ import TrackingFoldersSettings from "../components/nodes/TrackingFoldersSettings
 import AddTrackingFolders from "../components/nodes/AddTrackingFolders";
 import Home from "./Home";
 import {ClientEvents} from "../../events";
+import Notification from "../components/UI/Notification";
+import {useSelector} from "react-redux";
+import {RootState} from "../store";
 
 const ScreenManager: React.FC = _ => {
     const navigate = useNavigate();
     const location = useLocation();
+
+
+    const showNotification = useSelector((state: RootState) => state.ui.showNotification);
+    const notification: any = useSelector((state: RootState) => state.ui.activeNotification);
 
     window.Main.on(ClientEvents.initialSetup, () => {
         console.log("First Login Client")
@@ -55,6 +62,7 @@ const ScreenManager: React.FC = _ => {
                                    element={<AddTrackingFolders/>}/>
                             <Route path="/home" element={<Home/>}/>
                         </Routes>
+                        {showNotification && <Notification {...notification} />}
                     </main>
                 </div>
             </div>
