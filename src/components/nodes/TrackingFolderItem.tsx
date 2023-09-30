@@ -1,5 +1,7 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {ClientEvents} from "../../../events";
+import {startLoading} from "../../store/slices/loadingSlice";
+import {useDispatch} from "react-redux";
 
 interface TrackingFolderProp {
     name: string,
@@ -7,9 +9,15 @@ interface TrackingFolderProp {
 }
 
 const TrackingFolderItem: React.FC<TrackingFolderProp> = ({name, path}) => {
+    const dispatch = useDispatch();
     const onDeleteTrackingFolder = () => {
         window.Main.send(ClientEvents.deleteTrackingFolder, path);
+        dispatch(startLoading());
     };
+
+    useEffect(() => {
+        return(window.Main.removeAllListeners(ClientEvents.deleteTrackingFolder))
+    }, []);
 
     return (
         <>
@@ -31,7 +39,9 @@ const TrackingFolderItem: React.FC<TrackingFolderProp> = ({name, path}) => {
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onClick={onDeleteTrackingFolder}>Delete</button>
+                            <button type="button" className="btn btn-primary" data-bs-dismiss="modal"
+                                    onClick={onDeleteTrackingFolder}>Delete
+                            </button>
                         </div>
                     </div>
                 </div>

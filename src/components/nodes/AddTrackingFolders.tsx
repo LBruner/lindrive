@@ -1,8 +1,11 @@
 import React, {FormEvent, useEffect, useState} from "react";
 import {ClientEvents} from "../../../events";
+import {useDispatch} from "react-redux";
+import {startLoading} from "../../store/slices/loadingSlice";
 
 const AddTrackingFolders: React.FC = _ => {
     const [selectedFoldersPath, setSelectedFoldersPath] = useState<Array<string>>([])
+    const dispatch = useDispatch();
 
     useEffect(() => {
         window.Main.on('selectedFolders', (selectedFolders: string[]) => {
@@ -10,11 +13,10 @@ const AddTrackingFolders: React.FC = _ => {
 
             const uniqueNewFolders = selectedFolders.filter((newFolder) => !selectedFoldersPath.includes(newFolder));
             setSelectedFoldersPath((prevFolders) => [...prevFolders, ...uniqueNewFolders]);
-            window.Main.removeAllListeners('selectedFolders')
         })
 
         return (() => {
-            window.Main.removeAllListeners('selectedFolders')
+            window.Main.removeAllListeners('selectedFolders');
         })
     }, [selectedFoldersPath]);
 
@@ -31,7 +33,7 @@ const AddTrackingFolders: React.FC = _ => {
         event.preventDefault();
         window.Main.send(ClientEvents.addTrackingFolders, selectedFoldersPath);
         setSelectedFoldersPath([]);
-        window.Main.send(ClientEvents.getTrackingFolders);
+        dispatch(startLoading());
     }
 
     const onDeleteFolder = (folderName: string) => {
@@ -67,7 +69,7 @@ const AddTrackingFolders: React.FC = _ => {
                             {selectedFoldersPath.map((item) => {
                                 return (
                                     <div key={item}
-                                        className={'list-group-item list-group-item-action d-flex justify-content-between align-items-center'}>
+                                         className={'list-group-item list-group-item-action d-flex justify-content-between align-items-center'}>
                                         <span>{item}</span>
                                         <button onClick={onDeleteFolder.bind(null, item)} type="button"
                                                 className={'btn btn-danger'}>Delete

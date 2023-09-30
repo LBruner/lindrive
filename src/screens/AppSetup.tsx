@@ -1,10 +1,13 @@
 import React, {FormEvent, useEffect, useRef, useState} from "react";
-import {ServerEvents} from "../../events";
+import {ClientEvents, ServerEvents} from "../../events";
+import {startLoading} from "../store/slices/loadingSlice";
+import {useDispatch} from "react-redux";
 
 const AppSetup: React.FC = _ => {
     const [selectedFoldersPath, setSelectedFoldersPath] = useState<Array<string>>([])
     const rootFolderName = useRef<HTMLInputElement>(null);
 
+    const dispatch = useDispatch();
     const onPickFolders = async (event: any) => {
         event.preventDefault();
         window.Main.send('openFolderDialog')
@@ -12,12 +15,12 @@ const AppSetup: React.FC = _ => {
 
     const onSubmitHandler = (event: FormEvent) => {
         event.preventDefault();
-        console.log("SUBMIT")
         window.Main.send(ServerEvents.setupStart, {
-            selectedFolders: selectedFoldersPath,
             rootFolderName: rootFolderName.current?.value || 'Lindrive',
             //TODO: Pick hidden files
-        })
+        });
+        dispatch(startLoading());
+        window.Main.send(ClientEvents.addTrackingFolders, selectedFoldersPath);
     }
 
     useEffect(() => {

@@ -52,7 +52,8 @@ app.on('ready', async () => {
             for (const path of paths) {
                 await UserManager.getInstance().nodesManager.addTrackingFolder(path);
             }
-            mainWindow.webContents.send(ServerEvents.sendAddTrackingFolders);
+            mainWindow.webContents.send(ServerEvents.sendAddTrackingFolders, paths);
+            mainWindow.webContents.send(ServerEvents.finishedLoading);
         });
 
         ipcMain.on(ClientEvents.getTrackingFolders, () => {
@@ -62,8 +63,8 @@ app.on('ready', async () => {
 
         ipcMain.on(ClientEvents.deleteTrackingFolder, async (_, path: string) => {
             await UserManager.getInstance().nodesManager.deleteTrackingFolder(path);
-            console.log(path)
-            mainWindow.webContents.send(ServerEvents.sendDeletedTrackingFolder, path);
+            mainWindow.webContents.send(ServerEvents.sendTrackingFolders, UserManager.getInstance().nodesManager.getTrackingFolders());
+            mainWindow.webContents.send(ServerEvents.finishedLoading);
         });
 
         await userInstance.initUser();
@@ -97,9 +98,9 @@ app.on('ready', async () => {
 
 
     ipcMain.on(ServerEvents.setupStart, async (_, args) => {
-        const {selectedFolders, rootFolderName} = args;
+        const {rootFolderName} = args;
 
-        await userInstance.setupUser(selectedFolders, rootFolderName);
+        await userInstance.setupUser(rootFolderName);
         await userInstance.initUser();
         mainWindow.webContents.send(ClientEvents.startApp);
     })
