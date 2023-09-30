@@ -28,11 +28,10 @@ export class UserManager {
             throw new Error(`User tokens were not found!`);
         }
 
-        try{
+        try {
             oauth2Client.setCredentials(userTokens);
             console.log(`User Authenticated.`);
-        }
-        catch (e) {
+        } catch (e) {
             if (this.isTokenExpired()) {
                 console.log(`Token is expired.`)
                 await oauth2Client.refreshAccessToken();
@@ -40,12 +39,10 @@ export class UserManager {
         }
     }
 
-    setupUser = async (selectedFolders: string[], rootFolderName: string) => {
+    setupUser = async (rootFolderName: string) => {
         try {
             await this.attemptToAuthenticate();
             const rootFolderId = await createDriveFolder(rootFolderName, null)
-
-            selectedFolders.forEach(folder => this.userStore.addTrackingFolder(folder))
 
             this.userStore.setRootFolder({name: rootFolderName, id: rootFolderId!});
         } catch (e) {
