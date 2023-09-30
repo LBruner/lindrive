@@ -1,6 +1,6 @@
 import React from "react";
 import Navbar from "../components/navbar/Navbar";
-import {Route, Routes, useNavigate} from "react-router-dom";
+import {Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import AppSetup from "./AppSetup";
 import UserLogin from "./UserLogin";
 import TrackingFoldersSettings from "../components/nodes/TrackingFoldersSettings";
@@ -10,6 +10,7 @@ import {ClientEvents} from "../../events";
 
 const ScreenManager: React.FC = _ => {
     const navigate = useNavigate();
+    const location = useLocation();
 
     window.Main.on(ClientEvents.initialSetup, () => {
         console.log("First Login Client")
