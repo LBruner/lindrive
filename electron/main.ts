@@ -25,7 +25,9 @@ app.on('ready', async () => {
 
     await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-    const devTools = new BrowserWindow();
+    const devTools = new BrowserWindow({
+        title: "Lindrive"
+    });
     mainWindow.webContents.setDevToolsWebContents(devTools.webContents);
     mainWindow.webContents.openDevTools({mode: 'detach'});
 
