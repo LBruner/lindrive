@@ -16,10 +16,6 @@ This document provides an insight into the goals, technologies, and purpose behi
 operating System. Currently, it doesn't have a Linux OS version available with the features it has on Windows. Being
 able to select a folder path and track it for changes being the most important one. So for this reason, besides being a
 great application to start growing my portfolio it will also help me automatically store my files.
-<br></br>
-<p align="center">
-<img src="./docs/images/LindriveFolders.png">
-</p>
 
 ## Technologies/Tools Used 💻
 
