@@ -118,16 +118,14 @@ app.on('ready', async () => {
         });
     }
 
-
     ipcMain.on(ServerEvents.setupStart, async (_, args) => {
         const {rootFolderName} = args;
 
         await userInstance.setupUser(rootFolderName);
+        mainWindow.webContents.send(ServerEvents.setupFinished);
         await userInstance.initUser();
         mainWindow.webContents.send(ClientEvents.startApp);
     })
-
-
 });
 
 ipcMain.on('openFolderDialog', (event) => {

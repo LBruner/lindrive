@@ -20,7 +20,6 @@ const AppSetup: React.FC = _ => {
             //TODO: Pick hidden files
         });
         dispatch(startLoading());
-        window.Main.send(ClientEvents.addTrackingFolders, selectedFoldersPath);
     }
 
     useEffect(() => {
@@ -28,6 +27,15 @@ const AppSetup: React.FC = _ => {
             const uniqueNewFolders = selectedFolders.filter((newFolder) => !selectedFoldersPath.includes(newFolder));
             setSelectedFoldersPath((prevFolders) => [...prevFolders, ...uniqueNewFolders]);
             window.Main.removeAllListeners('selectedFolders')
+        });
+
+        window.Main.on(ServerEvents.setupFinished, () => {
+            window.Main.send(ClientEvents.addTrackingFolders, selectedFoldersPath);
+        });
+
+        return(() =>{
+            window.Main.removeAllListeners('selectedFolders');
+            window.Main.removeAllListeners(ServerEvents.setupFinished);
         })
     }, [selectedFoldersPath]);
 

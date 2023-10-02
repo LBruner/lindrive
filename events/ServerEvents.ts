@@ -1,6 +1,7 @@
 export enum ServerEvents{
     authStart = 'auth:start',
     setupStart = 'user:setup-start',
+    setupFinished = 'user:setup-finished',
     sendAddTrackingFolders = 'add:trackingFolders',
     sendTrackingFolders = 'send:TrackingFolders',
     sendDeletedTrackingFolder = 'del:TrackingFolder',
