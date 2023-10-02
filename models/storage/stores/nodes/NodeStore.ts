@@ -2,7 +2,6 @@ import Store from 'electron-store';
 import {EventEmitter} from "events";
 import {File, Folder, INode} from "./types";
 import {DataStore} from "../DataStore";
-import {deleteCloudFile} from "../../../googleDrive/googleDriveAPI";
 import {NodeLogger} from "../../../nodes/NodeLogger";
 
 interface INodeStore {
