@@ -3,5 +3,4 @@ export interface NodeLog {
     path: string,
     date: string,
     operation: 'ADD' | 'UPDATE'| 'DELETE',
-    type: 'FOLDER' | 'FILE'
 }

@@ -1,6 +1,5 @@
-import {BrowserWindow, ipcMain} from "electron";
-import {authUrl, oauth2Client} from "../googleDrive/googleAuth";
-import {UserManager} from "./UserManager";
+import {BrowserWindow} from "electron";
+import {authUrl} from "../googleDrive/googleAuth";
 
 export class OauthLogin {
     window: BrowserWindow;
@@ -18,7 +17,6 @@ export class OauthLogin {
         this.window.webContents.on('will-redirect', async (event, url) => {
             const code = new URL(url).searchParams.get('code');
             if (code) {
-                await UserManager.getInstance().setUserCredentials(code)
                 this.window.close();
             }
         })

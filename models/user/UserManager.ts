@@ -43,7 +43,6 @@ export class UserManager {
         try {
             await this.attemptToAuthenticate();
             const rootFolderId = await createDriveFolder(rootFolderName, null)
-
             this.userStore.setRootFolder({name: rootFolderName, id: rootFolderId!});
         } catch (e) {
             console.log(e)
@@ -74,20 +73,4 @@ export class UserManager {
     saveUserTokens = (userTokens: UserTokens) => {
         this.userStore.setUserCredentials(userTokens);
     }
-
-    setUserCredentials = async (authCode: any) => {
-        const {tokens} = await oauth2Client.getToken(authCode);
-
-        // if (!isUserSet) {
-        //     const folderId = await createDriveFolder('Lindrive', null);
-
-        // await UserData.create({
-        //     access_token: encryptedTokens.access_token,
-        //     refresh_token: encryptedTokens.refresh_token,
-        //     rootFolderName: 'Lindrive',
-        //     rootFolderId: folderId
-        // })
-        // }
-    }
-
 }
