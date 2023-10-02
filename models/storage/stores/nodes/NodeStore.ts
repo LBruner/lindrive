@@ -49,31 +49,6 @@ export abstract class NodeStore<T extends INode> implements DataStore {
         this.storeEmitter.on('dataChanged', this.refreshStore);
     }
 
-    createOne(file: INode): void {
-        const storedFiles = this.allNodesStored;
-
-        const fileExists = this.findOne(file.path);
-
-        if (fileExists) {
-            console.log(`File ${file.path} already exists!`);
-            return;
-        }
-
-        storedFiles.push(file);
-        this.setStore(storedFiles);
-
-        if (this.nodeType === "files") {
-            this.nodeLogger.createLog({
-                name: file.name,
-                path: file.path,
-                type: 'FILE',
-                operation: 'ADD',
-                date: new Date().toISOString().slice(0, 19)
-            });
-        }
-
-        console.log(`Created new File: ${file.path}`);
-    }
 
     getNode = (folderPath: string) => {
         return this.allNodesStored.find(folder => folder.path === folderPath);
@@ -137,43 +112,10 @@ export abstract class NodeStore<T extends INode> implements DataStore {
             this.nodeLogger.createLog({
                 name: newNode.name,
                 path: newNode.path,
-                type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
                 operation: 'UPDATE',
                 date: new Date().toISOString().slice(0, 19)
             });
         }
         console.log(`Folder: ${newNode.path} changed!`);
-    }
-
-    deleteOne = async (deletingNodePath: string): Promise<void> => {
-        const {allNodesStored} = this;
-
-        //TODO Refactor this:
-        const filteredFolders = allNodesStored.filter(node => {
-            return !node.path.startsWith(deletingNodePath + '/') && node.path !== deletingNodePath
-        });
-
-        const deletingFolder = allNodesStored.find(node => !node.path.startsWith(deletingNodePath + '/') && node.path === deletingNodePath)
-
-        if (this.nodeType === "files") {
-            this.nodeLogger.createLog({
-                name: deletingFolder!.name,
-                path: deletingFolder!.path,
-                type: this.nodeType === 'files' ? 'FILE' : 'FOLDER',
-                operation: 'DELETE',
-                date: new Date().toISOString().slice(0, 19)
-            })
-        }
-
-        this.setStore(filteredFolders);
-
-        const deletingNode = this.findOne(deletingNodePath);
-
-        if (deletingNode) {
-            console.log(deletingNode)
-            await deleteCloudFile(deletingNode.cloudId!);
-        }
-
-        console.log(`Folder: ${deletingNodePath} was deleted!`);
     }
 }
