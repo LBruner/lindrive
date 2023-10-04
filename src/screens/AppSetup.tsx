@@ -2,22 +2,23 @@ import React, {FormEvent, useEffect, useRef, useState} from "react";
 import {ClientEvents, ServerEvents} from "../../events";
 import {startLoading} from "../store/slices/loadingSlice";
 import {useDispatch} from "react-redux";
+import FolderSelect from "../components/nodes/FolderSelect";
 
 const AppSetup: React.FC = _ => {
     const [selectedFoldersPath, setSelectedFoldersPath] = useState<Array<string>>([])
     const rootFolderName = useRef<HTMLInputElement>(null);
-
+    const [trackHiddenNodes, settrackHiddenNodes] = useState<boolean>(false);
     const dispatch = useDispatch();
-    const onPickFolders = async (event: any) => {
-        event.preventDefault();
-        window.Main.send('openFolderDialog')
+
+    const onToggleSwitch = () => {
+        settrackHiddenNodes(prevState => !prevState);
     }
 
     const onSubmitHandler = (event: FormEvent) => {
         event.preventDefault();
         window.Main.send(ServerEvents.setupStart, {
             rootFolderName: rootFolderName.current?.value || 'Lindrive',
-            //TODO: Pick hidden files
+            trackHiddenNodes
         });
         dispatch(startLoading());
     }
@@ -33,7 +34,7 @@ const AppSetup: React.FC = _ => {
             window.Main.send(ClientEvents.addTrackingFolders, selectedFoldersPath);
         });
 
-        return(() =>{
+        return (() => {
             window.Main.removeAllListeners('selectedFolders');
             window.Main.removeAllListeners(ServerEvents.setupFinished);
         })
@@ -41,23 +42,23 @@ const AppSetup: React.FC = _ => {
 
     return (
         <div>
-            <div>
-                <h1>Welcome to Lindrive!</h1>
-                <form onSubmit={onSubmitHandler}>
-                    <label htmlFor={'savingFolders'}>Pick folders to track changes:</label>
-                    <button onClick={onPickFolders}>Click</button>
-                    <label htmlFor={'rootFolderName'}>Pick a name for the root folder:</label>
-                    <input placeholder={'Lindrive'} id={'rootFolderName'} ref={rootFolderName} name={'rootFolderName'}/>
-                    <select>
-                        <option>Save hidden files</option>
-                        <option>Don't save hidden files</option>
-                    </select>
-                    {selectedFoldersPath.map((item, index) => {
-                        return <p key={index}>{item}</p>
-                    })}
-                    <button type={'submit'}>Start</button>
-                </form>
-            </div>
+            <FolderSelect selectedFoldersPath={selectedFoldersPath} setSelectedFoldersPath={setSelectedFoldersPath}/>
+            <form onSubmit={onSubmitHandler}>
+                <h6 className={'text-dark alert alert-light'}>Pick a folder name to host all your Google Drive
+                    files.</h6>
+                <div className="input-group mb-3">
+                    <input type="text" className="form-control" placeholder="Lindrive..." aria-label="Username"
+                           aria-describedby="basic-addon1"></input>
+                </div>
+
+                <h6 className={'text-dark alert alert-light'}>Should hidden files/folders <b>(starts with a dot)</b> be
+                    tracked? <label className="toggle-switch">
+                        <input type="checkbox" onChange={() => {}} checked={trackHiddenNodes} onClick={onToggleSwitch} className={'p-5'}/>
+                    </label></h6>
+
+                <button className={'btn btn-primary mt-3 mb-3'} type={'submit'}>Start</button>
+
+            </form>
         </div>
     )
 }
