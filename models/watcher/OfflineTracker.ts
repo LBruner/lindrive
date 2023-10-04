@@ -1,5 +1,5 @@
 import {INode} from "../nodes/ItemNodes";
-import chokidar from "chokidar";
+import chokidar, {WatchOptions} from "chokidar";
 import {FolderNode} from "../folder/FolderNode";
 import {FileNode} from "../files/FileNode";
 import {FileStore, FolderStore} from "../storage/stores";
@@ -7,7 +7,7 @@ import {FileStore, FolderStore} from "../storage/stores";
 export class OfflineTracker {
     private readonly watcher: chokidar.FSWatcher;
 
-    constructor(public path: string, private folderStore: FolderStore, private fileStore: FileStore) {
+    constructor(public path: string, private folderStore: FolderStore, private fileStore: FileStore, private trackHiddenNode: boolean) {
         this.watcher = chokidar.watch(path, {
             ignoreInitial: true,
             awaitWriteFinish: {stabilityThreshold: 2000, pollInterval: 100}
@@ -24,9 +24,13 @@ export class OfflineTracker {
     }
 
     async getInitialFolders() {
-        const temporaryWatcher = chokidar.watch(this.path, {
-            ignored: /(^|\/)\.[^\/.]/g
-        });
+        const configWatch: WatchOptions = {};
+
+        if(!this.trackHiddenNode){
+            configWatch.ignored =  /(^|\/)\.[^\/.]/g
+        }
+
+        const temporaryWatcher = chokidar.watch(this.path, configWatch);
         const initialNodes: INode[] = [];
 
         const promise: Promise<INode[]> = new Promise((resolve) => {
@@ -41,10 +45,13 @@ export class OfflineTracker {
     }
 
     async getInitialFiles() {
-        //TODO ask if want to ignore hidden folders
-        const temporaryWatcher = chokidar.watch(this.path, {
-            ignored: /(^|\/)\.[^\/.]/g
-        });
+        const configWatch: WatchOptions = {};
+
+        if(!this.trackHiddenNode){
+            configWatch.ignored =  /(^|\/)\.[^\/.]/g
+        }
+
+        const temporaryWatcher = chokidar.watch(this.path, configWatch);
         const initialNodes: INode[] = [];
 
         const promise: Promise<INode[]> = new Promise((resolve) => {

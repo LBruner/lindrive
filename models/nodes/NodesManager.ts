@@ -43,7 +43,8 @@ export class NodesManager {
             return;
         }
 
-        const newNodeTracker = new NodeTracker(trackingFolderPath);
+        const trackHiddenNodes = this.userStore.getTrackingHiddenNode();
+        const newNodeTracker = new NodeTracker(trackingFolderPath, trackHiddenNodes);
         this.trackingFolders.push(newNodeTracker);
         this.userStore.addTrackingFolder(trackingFolderPath);
         await newNodeTracker.handleInitialNodes();

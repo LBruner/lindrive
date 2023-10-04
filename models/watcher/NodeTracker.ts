@@ -5,12 +5,12 @@ import {FolderNode} from "../folder/FolderNode";
 import {OfflineTracker} from "./OfflineTracker";
 import fs from "fs";
 import {FileStore, FolderStore} from "../storage/stores";
+import {WatchOptions} from "chokidar";
 
-const watcherConfig = {
+const watcherConfig: WatchOptions = {
     awaitWriteFinish: {stabilityThreshold: 2000, pollInterval: 100},
     persistent: true,
-    ignored: /(^|[/\\])\..obsidian/,
-    ignoreInitial: true
+    ignoreInitial: true,
 }
 
 export class NodeTracker {
@@ -19,11 +19,16 @@ export class NodeTracker {
     fileStore: FileStore;
     folderStore: FolderStore = new FolderStore();
 
-    constructor(public path: string) {
+    constructor(public path: string, private trackHiddenNode: boolean) {
         this.fileStore = new FileStore();
         this.folderStore = new FolderStore();
 
         this.itemNodes = new ItemNodes(this.fileStore, this.folderStore);
+
+
+        if(!this.trackHiddenNode){
+            watcherConfig.ignored =  /(^|\/)\.[^\/.]/g
+        }
 
         const pathIsValid = this.isFolderPathValid(path);
         if (pathIsValid) {
@@ -57,7 +62,7 @@ export class NodeTracker {
         await this.handleNodesEvents();
     }
 
-    unWatchDirectory = async () =>{
+    unWatchDirectory = async () => {
         await this.itemNodes.deleteNode(this.path, 'FOLDER');
         this.watcher.removeAllEvents();
     }
@@ -86,9 +91,8 @@ export class NodeTracker {
     }
 
     handleInitialNodes = async () => {
-        const offlineTrack = new OfflineTracker(this.path, this.folderStore, this.fileStore);
+        const offlineTrack = new OfflineTracker(this.path, this.folderStore, this.fileStore, this.trackHiddenNode);
         const initialNodes = await offlineTrack.getInitialNodes();
-
 
         await this.itemNodes.addMultipleNodes(initialNodes);
 

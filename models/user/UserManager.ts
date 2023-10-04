@@ -39,11 +39,12 @@ export class UserManager {
         }
     }
 
-    setupUser = async (rootFolderName: string) => {
+    setupUser = async (rootFolderName: string, trackHiddenNodes: boolean) => {
         try {
             await this.attemptToAuthenticate();
             const rootFolderId = await createDriveFolder(rootFolderName, null)
             this.userStore.setRootFolder({name: rootFolderName, id: rootFolderId!});
+            this.setTrackHiddenNodes(trackHiddenNodes);
         } catch (e) {
             console.log(e)
         }
@@ -72,5 +73,14 @@ export class UserManager {
 
     saveUserTokens = (userTokens: UserTokens) => {
         this.userStore.setUserCredentials(userTokens);
+    }
+
+    setTrackHiddenNodes = (shouldTrack: boolean) =>{
+        this.userStore.setTrackHiddenNode(shouldTrack);
+    }
+
+    isUserSetup = () =>{
+        console.log(this.userStore.getRootFolder())
+        return this.userStore.getRootFolder().id !== '';
     }
 }

@@ -25,9 +25,7 @@ app.on('ready', async () => {
 
     await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-    const devTools = new BrowserWindow({
-        title: "Lindrive"
-    });
+    const devTools = new BrowserWindow();
     mainWindow.webContents.setDevToolsWebContents(devTools.webContents);
     mainWindow.webContents.openDevTools({mode: 'detach'});
 
@@ -83,16 +81,29 @@ app.on('ready', async () => {
                     status: 'success',
                     message: 'The folder was deleted'
                 },
-                 timer: 3000
+                timer: 3000
             }
 
             mainWindow.webContents.send(ServerEvents.finishedLoading, notification);
         });
 
+        if (!userInstance.isUserSetup()) {
+            mainWindow.webContents.send(ClientEvents.initialSetup);
+
+            ipcMain.on(ServerEvents.setupStart, async (_, args) => {
+                const {rootFolderName, trackHiddenNodes} = args;
+                await userInstance.setupUser(rootFolderName, trackHiddenNodes);
+                console.log("TRACK FILES", trackHiddenNodes);
+                mainWindow.webContents.send(ServerEvents.setupFinished);
+                await userInstance.initUser();
+                mainWindow.webContents.send(ClientEvents.startApp);
+            })
+        }
+
         await userInstance.initUser();
         console.log("User Returned!");
         mainWindow.webContents.send(ClientEvents.startApp);
-        return;
+
     } catch (e) {
         mainWindow.webContents.send(ClientEvents.loadLoginPage);
         console.log('User first start')
@@ -117,15 +128,6 @@ app.on('ready', async () => {
             mainWindow.webContents.send(ClientEvents.initialSetup);
         });
     }
-
-    ipcMain.on(ServerEvents.setupStart, async (_, args) => {
-        const {rootFolderName} = args;
-
-        await userInstance.setupUser(rootFolderName);
-        mainWindow.webContents.send(ServerEvents.setupFinished);
-        await userInstance.initUser();
-        mainWindow.webContents.send(ClientEvents.startApp);
-    })
 });
 
 ipcMain.on('openFolderDialog', (event) => {
