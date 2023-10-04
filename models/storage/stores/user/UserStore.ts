@@ -15,6 +15,8 @@ export class UserStore implements DataStore {
                     id: '',
                     name: 'lindrive'
                 },
+                userTheme: 'LIGHT',
+                trackHiddenNodes: false,
                 trackingFolders: []
             }
         });
@@ -74,5 +76,12 @@ export class UserStore implements DataStore {
 
     setRootFolder = (rootFolder: RootFolder) => {
         this.store.set('rootFolder', rootFolder);
+    };
+
+    getTrackingHiddenNode = () =>{
+        return this.store.get('trackHiddenNodes');
+    }
+    setTrackHiddenNode = (newValue: boolean) =>{
+        this.store.set('trackHiddenNodes', newValue);
     }
 }
