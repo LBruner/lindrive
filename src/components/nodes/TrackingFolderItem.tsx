@@ -30,7 +30,7 @@ const TrackingFolderItem: React.FC<TrackingFolderProp> = ({name, path}) => {
                 </button>
             </AlertModal>
             <div className="list-group">
-                <div className="list-group-item list-group-item-action" aria-current="true">
+                <div className="list-group-item list-group-item-action z-0" aria-current="true">
                     <div className="d-flex w-100 justify-content-between align-items-center">
                         <h5 className="mb-1">{name}</h5>
                         <button type="button" className="btn btn-danger" data-bs-toggle="modal"

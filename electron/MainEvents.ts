@@ -74,8 +74,6 @@ export class MainEvents {
             timer: 3000
         }
         this.mainWindow.webContents.send(ServerEvents.finishedLoading, notification);
-
-        console.log(paths)
     }
 
     onClientGetTrackingFolder = () => {
@@ -105,64 +103,3 @@ export class MainEvents {
         app.quit()
     }
 }
-
-
-// eventEmitter.on(ServerEvents.sendNodeChange, (newLog: NodeLog) => {
-//     console.log('new', newLog)
-//     mainWindow.webContents.send(ServerEvents.sendNodeChange, newLog);
-// });
-
-// ipcMain.on(ClientEvents.getLogs, () => {
-//     const emitter = userInstance.nodesManager.getNodesEmitter();
-//     emitter.emit(ServerEvents.getLogs);
-// });
-
-//TODO this event is being triggered 3 times.
-// eventEmitter.on(ServerEvents.sendLogs, (dayLogs: NodeLog[]) => {
-//     console.log("SENDING LOGS")
-//     mainWindow.webContents.send(ServerEvents.sendLogs, dayLogs.reverse());
-// });
-
-// ipcMain.on(ClientEvents.addTrackingFolders, async (_, paths: string[]) => {
-//     for (const path of paths) {
-//         await UserManager.getInstance().nodesManager.addTrackingFolder(path);
-//     }
-//     mainWindow.webContents.send(ServerEvents.sendAddTrackingFolders, paths);
-//
-//     const notification: Notification = {
-//         details: {
-//             title: `Success!`,
-//             status: 'success',
-//             message: 'The folder was added'
-//         },
-//         timer: 3000
-//     }
-//     mainWindow.webContents.send(ServerEvents.finishedLoading, notification);
-// });
-
-// ipcMain.on(ClientEvents.getTrackingFolders, () => {
-//     const trackingFolders = UserManager.getInstance().nodesManager.getTrackingFolders();
-//     mainWindow.webContents.send(ServerEvents.sendTrackingFolders, trackingFolders);
-// });
-
-// ipcMain.on(ClientEvents.deleteTrackingFolder, async (_, path: string) => {
-//     await UserManager.getInstance().nodesManager.deleteTrackingFolder(path);
-//     mainWindow.webContents.send(ServerEvents.sendTrackingFolders, UserManager.getInstance().nodesManager.getTrackingFolders());
-//
-//     const notification: Notification = {
-//         details: {
-//             title: `Success!`,
-//             status: 'success',
-//             message: 'The folder was deleted'
-//         },
-//         timer: 3000
-//     }
-//
-//     mainWindow.webContents.send(ServerEvents.finishedLoading, notification);
-// });
-
-// ipcMain.on(ClientEvents.logout, async () => {
-//     await userInstance.logout();
-//     app.relaunch()
-//     app.exit()
-// });
