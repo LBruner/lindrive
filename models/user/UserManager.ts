@@ -60,6 +60,11 @@ export class UserManager {
         }
     }
 
+    logout = async () => {
+        this.userStore.eraseAllData();
+        this.nodesManager.deleteAllNodes();
+    }
+
     isTokenExpired = () => {
         const tokenExpiration = oauth2Client.credentials.expiry_date;
         const currentTime = Date.now();
@@ -75,11 +80,11 @@ export class UserManager {
         this.userStore.setUserCredentials(userTokens);
     }
 
-    setTrackHiddenNodes = (shouldTrack: boolean) =>{
+    setTrackHiddenNodes = (shouldTrack: boolean) => {
         this.userStore.setTrackHiddenNode(shouldTrack);
     }
 
-    isUserSetup = () =>{
+    isUserSetup = () => {
         console.log(this.userStore.getRootFolder())
         return this.userStore.getRootFolder().id !== '';
     }

@@ -78,6 +78,10 @@ export class UserStore implements DataStore {
         this.store.set('rootFolder', rootFolder);
     };
 
+    eraseAllData = () =>{
+        this.store.clear();
+    }
+
     getTrackingHiddenNode = () =>{
         return this.store.get('trackHiddenNodes');
     }

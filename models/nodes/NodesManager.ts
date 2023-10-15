@@ -38,7 +38,7 @@ export class NodesManager {
     addTrackingFolder = async (trackingFolderPath: string) => {
         const nodeExistsAlready = this.trackingFolders.some(node => node.path === trackingFolderPath);
 
-        if(nodeExistsAlready){
+        if (nodeExistsAlready) {
             console.log(`Path: ${trackingFolderPath} is already registered.`);
             return;
         }
@@ -50,7 +50,12 @@ export class NodesManager {
         await newNodeTracker.handleInitialNodes();
     }
 
-    getNodesEmitter = (): EventEmitter =>{
+    deleteAllNodes = () => {
+        this.trackingFolders.forEach((tracker => tracker.watcher.removeAllEvents()));
+        this.trackingFolders = [];
+    }
+
+    getNodesEmitter = (): EventEmitter => {
         return this.nodeEmitter;
     }
 }
