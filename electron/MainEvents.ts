@@ -102,7 +102,7 @@ export class MainEvents {
     onLogout = async () => {
         await userInstance.logout();
         app.relaunch()
-        app.exit()
+        app.quit()
     }
 }
 

@@ -22,7 +22,7 @@ const FolderSelect: React.FC<FolderSelectProps> = ({selectedFoldersPath, setSele
 
     return (
         <>
-            <h6 className={'text-dark alert alert-light'}>Pick the folders you wish to track.</h6>
+            <h5 className={'text-dark alert alert-light'}>Pick the folders you wish to track.</h5>
             <div className={'d-flex gap-1 '}>
                 <button className={'btn btn-secondary mb-3'} type={'button'} onClick={onPickFolders}>
                     Select Folders
@@ -34,16 +34,15 @@ const FolderSelect: React.FC<FolderSelectProps> = ({selectedFoldersPath, setSele
                         </button>
                     </>
                 }
-
             </div>
             {
                 selectedFoldersPath.length > 0 &&
                 <>
                     <div className="list-group mb-3">
-                        <button type="button" className="list-group-item list-group-item-action active"
+                        <span  className="list-group-item list-group-item-action active z-0"
                                 aria-current="true">
                             Folders to add:
-                        </button>
+                        </span>
                         {selectedFoldersPath.map((item) => {
                             return (
                                 <div key={item}

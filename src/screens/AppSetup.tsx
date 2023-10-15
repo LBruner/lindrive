@@ -7,11 +7,11 @@ import FolderSelect from "../components/nodes/FolderSelect";
 const AppSetup: React.FC = _ => {
     const [selectedFoldersPath, setSelectedFoldersPath] = useState<Array<string>>([])
     const rootFolderName = useRef<HTMLInputElement>(null);
-    const [trackHiddenNodes, settrackHiddenNodes] = useState<boolean>(false);
+    const [trackHiddenNodes, setTrackHiddenNodes] = useState<boolean>(false);
     const dispatch = useDispatch();
 
     const onToggleSwitch = () => {
-        settrackHiddenNodes(prevState => !prevState);
+        setTrackHiddenNodes(prevState => !prevState);
     }
 
     const onSubmitHandler = (event: FormEvent) => {
@@ -42,22 +42,26 @@ const AppSetup: React.FC = _ => {
 
     return (
         <div>
-            <FolderSelect selectedFoldersPath={selectedFoldersPath} setSelectedFoldersPath={setSelectedFoldersPath}/>
             <form onSubmit={onSubmitHandler}>
-                <h6 className={'text-dark alert alert-light'}>Pick a folder name to host all your Google Drive
-                    files.</h6>
+                <FolderSelect selectedFoldersPath={selectedFoldersPath}
+                              setSelectedFoldersPath={setSelectedFoldersPath}/>
+                <h5 className={'text-dark alert alert-light'}>Pick a folder name to host all your Google Drive
+                    files.</h5>
                 <div className="input-group mb-3">
                     <input type="text" className="form-control" placeholder="Lindrive..." aria-label="Username"
                            aria-describedby="basic-addon1"></input>
                 </div>
-
-                <h6 className={'text-dark alert alert-light'}>Should hidden files/folders <b>(starts with a dot)</b> be
+                <h5 className={'text-dark alert alert-light'}>Should hidden files/folders <b>(starts with a dot)</b> be
                     tracked? <label className="toggle-switch">
-                        <input type="checkbox" onChange={() => {}} checked={trackHiddenNodes} onClick={onToggleSwitch} className={'p-5'}/>
-                    </label></h6>
-
-                <button className={'btn btn-primary mt-3 mb-3'} type={'submit'}>Start</button>
-
+                        <input type="checkbox" onChange={() => {
+                        }} checked={trackHiddenNodes} onClick={onToggleSwitch} className={'p-5'}/>
+                    </label></h5>
+                <div className={'btn-group'}>
+                    <button disabled={selectedFoldersPath.length === 0}
+                            className={`btn   p-2 ${selectedFoldersPath.length > 0 ? 'btn-primary' : 'btn-secondary'}`}
+                            type={'submit'}>Start
+                    </button>
+                </div>
             </form>
         </div>
     )
