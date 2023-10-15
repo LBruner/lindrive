@@ -1,6 +1,18 @@
 import {library} from '@fortawesome/fontawesome-svg-core';
-import {faGear, faMoon, faHardDrive, faSquarePlus, faHome, faRightFromBracket, faFolder, faX, faFile, faPlus, faMinus,faArrowRotateRight} from "@fortawesome/free-solid-svg-icons";
+import {
+    faCloudArrowUp,
+    faMoon,
+    faSun,
+    faSquarePlus,
+    faHome,
+    faRightFromBracket,
+    faFolder,
+    faFile,
+    faPlus,
+    faMinus,
+    faArrowRotateRight,
+} from "@fortawesome/free-solid-svg-icons";
 
 export const setupIcons = () => {
-    library.add(faGear, faMoon, faHardDrive, faSquarePlus, faHome, faRightFromBracket, faFolder,faX,faFile, faPlus, faMinus, faArrowRotateRight);
+    library.add(faCloudArrowUp,faMoon, faSun, faSquarePlus, faHome, faRightFromBracket, faFolder, faFile, faPlus, faMinus, faArrowRotateRight);
 }
