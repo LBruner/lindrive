@@ -13,7 +13,6 @@ const LoadingScreen: React.FC = _ => {
 
     useEffect(() => {
         window.Main.on(ServerEvents.finishedLoading, (notification: Notification) => {
-            console.log("ACONTECEU")
             dispatch(stopLoading());
 
             dispatch(uiActions.showNotification({

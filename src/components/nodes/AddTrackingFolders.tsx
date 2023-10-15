@@ -21,15 +21,6 @@ const AddTrackingFolders: React.FC = _ => {
         })
     }, [selectedFoldersPath]);
 
-    const onPickFolders = async (event: any) => {
-        event.preventDefault();
-        window.Main.send('openFolderDialog');
-    }
-
-    const resetFolders = () => {
-        setSelectedFoldersPath([]);
-    }
-
     const onSubmitHandler = (event: FormEvent) => {
         event.preventDefault();
         window.Main.send(ClientEvents.addTrackingFolders, selectedFoldersPath);
@@ -37,18 +28,15 @@ const AddTrackingFolders: React.FC = _ => {
         dispatch(startLoading());
     }
 
-    const onDeleteFolder = (folderName: string) => {
-        const newSelectedFolders = selectedFoldersPath.filter((item) => item !== folderName);
-        setSelectedFoldersPath(newSelectedFolders);
-    }
-
     return (
         <>
             <form onSubmit={onSubmitHandler}>
                 <FolderSelect selectedFoldersPath={selectedFoldersPath}
                               setSelectedFoldersPath={setSelectedFoldersPath}/>
+
+            {selectedFoldersPath.length > 0 &&
+                <button className={'btn btn-primary mt-3 mb-3'} type={'submit'}>{`Add folder${selectedFoldersPath.length > 1 ? 's' : ''}`}</button>}
             </form>
-            <button className={'btn btn-primary mt-3 mb-3'} type={'submit'}>Add folders</button>
         </>
     )
 }

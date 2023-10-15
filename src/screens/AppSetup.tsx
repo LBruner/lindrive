@@ -56,9 +56,9 @@ const AppSetup: React.FC = _ => {
                         <input type="checkbox" onChange={() => {
                         }} checked={trackHiddenNodes} onClick={onToggleSwitch} className={'p-5'}/>
                     </label></h5>
-                <div className={'btn-group'}>
+                <div className={'btn-group z-0'}>
                     <button disabled={selectedFoldersPath.length === 0}
-                            className={`btn   p-2 ${selectedFoldersPath.length > 0 ? 'btn-primary' : 'btn-secondary'}`}
+                            className={`btn p-2 ${selectedFoldersPath.length > 0 ? 'btn-primary' : 'btn-secondary'}`}
                             type={'submit'}>Start
                     </button>
                 </div>
