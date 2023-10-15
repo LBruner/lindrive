@@ -2,7 +2,9 @@
   "name": "lindrive",
   "author": "LBruner",
   "version": "0.0.1",
+  "description": "Google Drive Clone for Linux based OS",
   "main": "./.webpack/main/index.js",
+  "license": "MIT",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
@@ -86,8 +88,8 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "name": "Electron starter",
-        "executableName": "electron-starter",
+        "name": "lindrive",
+        "executableName": "lindrive",
         "icon": "assets/icon",
         "extraResource": [
           "assets"
@@ -118,7 +120,7 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "Electron Starter"
+            "name": "lindrive"
           }
         },
         {
