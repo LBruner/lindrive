@@ -1,6 +1,7 @@
 import React from "react";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {useLocation, useNavigate} from "react-router-dom";
+import AlertModal from "../UI/AlertModal";
 
 const Navbar: React.FC = _ => {
     const navigate = useNavigate();
@@ -10,7 +11,7 @@ const Navbar: React.FC = _ => {
     const unActiveTabColor = "rgb(36,120,229)";
 
     const onGoToPathHandler = (path: string) => {
-        navigate(path)
+        navigate(path);
     }
 
     return (
@@ -47,18 +48,11 @@ const Navbar: React.FC = _ => {
                 </ul>
                 <ul className="nav flex-column text-center">
                     <hr/>
-                    <li className="nav-item my-bg-0">
-                        <a className="nav-link" href="#">
-                            <FontAwesomeIcon icon={'fa-gear'}
-                                             color={location.pathname === '/settings' ? activeTabColor : unActiveTabColor}
-                                             size={"2x"} onClick={onGoToPathHandler.bind(null, 'settings')}/>
-                        </a>
-                    </li>
                     <li className="nav-item">
-                        <a className="nav-link" href="#">
+                        <a className="nav-link">
                             <FontAwesomeIcon icon={'fa-right-from-bracket'}
-                                             color={location.pathname === '/logout' ? activeTabColor : unActiveTabColor}
-                                             size={"2x"} onClick={onGoToPathHandler.bind(null, 'logout')}/>
+                                             size={"2x"}
+                                             onClick={onGoToPathHandler.bind(null, 'logout')}></FontAwesomeIcon>
                         </a>
                     </li>
                 </ul>

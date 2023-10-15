@@ -6,4 +6,5 @@ export enum ClientEvents {
     'getTrackingFolders' = 'get:TrackingFolders',
     'deleteTrackingFolder' = 'del:TrackingFolder',
     'getLogs' = 'get:logs',
+    'logout' = 'logout',
 }

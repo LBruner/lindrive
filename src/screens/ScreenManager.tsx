@@ -10,6 +10,7 @@ import {ClientEvents} from "../../events";
 import Notification from "../components/UI/Notification";
 import {useSelector} from "react-redux";
 import {RootState} from "../store";
+import Logout from "./Logout";
 
 const ScreenManager: React.FC = _ => {
     const navigate = useNavigate();
@@ -43,6 +44,8 @@ const ScreenManager: React.FC = _ => {
         locationTitle = 'All Folders'
     if (location.pathname === '/addTrackingFolders')
         locationTitle = 'Add Folders'
+  if (location.pathname === '/logout')
+        locationTitle = 'Logout'
 
     return (
         <>
@@ -54,7 +57,10 @@ const ScreenManager: React.FC = _ => {
                             {locationTitle}
                         </h1>
                         <Routes>
+                            <Route path={"/logout"}
+                                   element={<Logout/>}/>
                             <Route path="/setup" element={<AppSetup/>}/>
+
                             <Route path="/login" element={<UserLogin/>}/>
                             <Route path={"/trackingFolders"}
                                    element={<TrackingFoldersSettings/>}/>
