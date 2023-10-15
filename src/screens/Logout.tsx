@@ -1,5 +1,4 @@
 import React from "react";
-import AlertModal from "../components/UI/AlertModal";
 import {ClientEvents} from "../../events";
 
 const Logout: React.FC = _ => {

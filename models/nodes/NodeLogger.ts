@@ -54,6 +54,6 @@ export class NodeLogger {
 
         storedLogs.push(log);
         this.setStore(storedLogs);
-        this.nodeEmitter.emit(ServerEvents.sendNodeChanged, log);
+        this.nodeEmitter.emit(ServerEvents.sendNodeChange, log);
     }
 }

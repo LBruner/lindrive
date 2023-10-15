@@ -1,7 +1,6 @@
 import React from "react";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {useLocation, useNavigate} from "react-router-dom";
-import AlertModal from "../UI/AlertModal";
 
 const Navbar: React.FC = _ => {
     const navigate = useNavigate();

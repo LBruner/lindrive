@@ -1,133 +1,19 @@
 import {app, BrowserWindow, dialog, ipcMain} from 'electron'
-import {authUrl, oauth2Client} from "../models/googleDrive/googleAuth";
-import {UserManager} from "../models/user/UserManager";
-import {ClientEvents, ServerEvents} from '../events'
-import {NodeLog} from "../models/nodes/NodeLog";
-import {Notification} from '../src/components/UI/Notification'
+import {MainWindow} from "./MainWindow";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
-let mainWindow: BrowserWindow;
-const userInstance = UserManager.getInstance();
+let mainWindow: MainWindow;
 
 app.on('ready', async () => {
-    mainWindow = new BrowserWindow({
-        title: 'Lindrive',
-        webPreferences: {
-            nodeIntegration: true, preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-        },
-        height: 600,
-        width: 760,
-        roundedCorners: true,
-        center: true,
-        resizable: false
-    });
-
-    await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    mainWindow = new MainWindow(MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY);
 
     const devTools = new BrowserWindow();
     mainWindow.webContents.setDevToolsWebContents(devTools.webContents);
     mainWindow.webContents.openDevTools({mode: 'detach'});
 
-    const eventEmitter = userInstance.nodesManager.getNodesEmitter();
-
-    eventEmitter.on(ServerEvents.sendNodeChanged, (newLog: NodeLog) => {
-        console.log('new', newLog)
-        mainWindow.webContents.send(ServerEvents.sendNodeChanged, newLog);
-    });
-
-    ipcMain.on(ClientEvents.getLogs, () => {
-        console.log("GIVE ME LOGS")
-        const emitter = userInstance.nodesManager.getNodesEmitter();
-        emitter.emit(ServerEvents.getLogs);
-    });
-
-    //TODO this event is being triggered 3 times.
-    eventEmitter.on(ServerEvents.sendLogs, (dayLogs: NodeLog[]) => {
-        console.log("SENDING LOGS")
-        mainWindow.webContents.send(ServerEvents.sendLogs, dayLogs.reverse());
-    });
-
-    try {
-        ipcMain.on(ClientEvents.addTrackingFolders, async (_, paths: string[]) => {
-            for (const path of paths) {
-                await UserManager.getInstance().nodesManager.addTrackingFolder(path);
-            }
-            mainWindow.webContents.send(ServerEvents.sendAddTrackingFolders, paths);
-
-            const notification: Notification = {
-                details: {
-                    title: `Success!`,
-                    status: 'success',
-                    message: 'The folder was added'
-                },
-                timer: 3000
-            }
-            mainWindow.webContents.send(ServerEvents.finishedLoading, notification);
-        });
-
-        ipcMain.on(ClientEvents.getTrackingFolders, () => {
-            const trackingFolders = UserManager.getInstance().nodesManager.getTrackingFolders();
-            mainWindow.webContents.send(ServerEvents.sendTrackingFolders, trackingFolders);
-        });
-
-        ipcMain.on(ClientEvents.deleteTrackingFolder, async (_, path: string) => {
-            await UserManager.getInstance().nodesManager.deleteTrackingFolder(path);
-            mainWindow.webContents.send(ServerEvents.sendTrackingFolders, UserManager.getInstance().nodesManager.getTrackingFolders());
-
-            const notification: Notification = {
-                details: {
-                    title: `Success!`,
-                    status: 'success',
-                    message: 'The folder was deleted'
-                },
-                timer: 3000
-            }
-
-            mainWindow.webContents.send(ServerEvents.finishedLoading, notification);
-        });
-
-        if (!userInstance.isUserSetup()) {
-            mainWindow.webContents.send(ClientEvents.initialSetup);
-
-            ipcMain.on(ServerEvents.setupStart, async (_, args) => {
-                const {rootFolderName, trackHiddenNodes} = args;
-                await userInstance.setupUser(rootFolderName, trackHiddenNodes);
-                console.log("TRACK FILES", trackHiddenNodes);
-                mainWindow.webContents.send(ServerEvents.setupFinished);
-                await userInstance.initUser();
-                mainWindow.webContents.send(ClientEvents.startApp);
-            })
-        }
-
-        await userInstance.initUser();
-        console.log("User Returned!");
-        mainWindow.webContents.send(ClientEvents.startApp);
-
-    } catch (e) {
-        mainWindow.webContents.send(ClientEvents.loadLoginPage);
-        console.log('User first start')
-        ipcMain.on(ServerEvents.authStart, async () => {
-            const authWindow = new BrowserWindow({useContentSize: true});
-            const code = await getOAuthCodeByInteraction(authWindow, authUrl);
-
-            if (!code) {
-                throw new Error('No authentication code was provided.')
-            }
-
-            const tokensResponse = (await oauth2Client.getToken(code)).tokens;
-            const {access_token, refresh_token} = tokensResponse;
-
-            if (!access_token || !refresh_token) {
-                throw new Error('User tokens not available');
-            }
-
-            userInstance.saveUserTokens({access_token, refresh_token})
-
-            console.log("User Logged in!");
-            mainWindow.webContents.send(ClientEvents.initialSetup);
-        });
-    }
+    await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    await mainWindow.checkUserLogin();
 });
 
 ipcMain.on('openFolderDialog', (event) => {
@@ -143,32 +29,6 @@ ipcMain.on('openFolderDialog', (event) => {
         console.error(err);
     });
 });
-
-
-const getOAuthCodeByInteraction = (interactionWindow: BrowserWindow, authPageURL: string): Promise<string | null> => {
-    interactionWindow.loadURL(authPageURL);
-    return new Promise((resolve, reject) => {
-        const onClosed = () => {
-            interactionWindow.close();
-            reject('Interaction ended intentionally');
-        };
-
-        interactionWindow.on('closed', onClosed);
-
-        interactionWindow.webContents.on('did-fail-load', (_, __, ___, validatedURL) => {
-            const url = new URL(validatedURL)
-            const authorizationCode = url.searchParams.get('code');
-
-            interactionWindow.removeListener('closed', onClosed);
-            if (!authorizationCode) {
-                reject('Login failed.');
-            }
-
-            interactionWindow.close();
-            return resolve(authorizationCode);
-        })
-    });
-};
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {

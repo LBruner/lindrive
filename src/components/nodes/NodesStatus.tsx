@@ -8,8 +8,8 @@ const NodesStatus: React.FC = () => {
 
     console.log(nodesLog)
     useEffect(() => {
-        window.Main.on(ServerEvents.sendNodeChanged, (node: NodeLog) => {
-            setNodesLog(prevState => [node,...prevState]);
+        window.Main.on(ServerEvents.sendNodeChange, (node: NodeLog) => {
+            setNodesLog(prevState => [node, ...prevState]);
         });
 
         window.Main.on(ServerEvents.sendLogs, (dayNodes: NodeLog[]) => {
